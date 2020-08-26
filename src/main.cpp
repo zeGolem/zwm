@@ -155,12 +155,14 @@ int main(void)
 			auto event_window = event.xunmap.window;
 
 			auto frame = find_frame_for_xwindow(event_window);
-			if (frame == 0) {
+			if (frame == 0)
+			{
 				fprintf(stderr, "Unmapping a window that was not framed! Ignoring…\n");
 				break;
 			}
 
-			if (event.xunmap.event == DefaultRootWindow(display)) {
+			if (event.xunmap.event == DefaultRootWindow(display))
+			{
 				// I have no idea why or how this happens, just copy-pasted this from
 				// https://github.com/jichu4n/basic_wm/blob/75483547ae0ddb7585c28af86b9c957ba6c3302b/window_manager.cpp#L310
 				// And it works…
@@ -185,6 +187,12 @@ int main(void)
 			XConfigureWindow(display, config_request.window, config_request.value_mask, &changes);
 			break;
 		}
+
+		// Events to ignore.
+		case ConfigureNotify:
+		case MapNotify:
+		case ReparentNotify:
+			break;
 
 		default:
 			fprintf(stdout, "Unhandled event %d\n", event.type);
