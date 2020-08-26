@@ -23,7 +23,7 @@ namespace ZWM
 
 		// if (attrs.override_redirect || attrs.map_state != IsViewable)
 		// {
-		// 	fprintf(stdout, "Skipping framing on window %x because it's invisible\n", frame_target);
+		// 	fprintf(stdout, "Skipping framing on window %x because it's invisible\n", window);
 		// 	return;
 		// }
 
