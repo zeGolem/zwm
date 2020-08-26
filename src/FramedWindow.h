@@ -30,9 +30,12 @@ namespace ZWM
 	class FramedWindow
 	{
 	private:
+		// Frame configuration
 		static const unsigned int BORDER_WIDTH = 3;
 		static const unsigned long BORDER_COLOR = 0x037ffc;
 		static const unsigned long BG_COLOR = 0x4074a8;
+
+		static const unsigned int TOPBAR_HEIGHT = 15;
 
 		Window m_window;
 		Frame m_frame;

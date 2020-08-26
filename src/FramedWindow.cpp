@@ -28,12 +28,12 @@ namespace ZWM
 		// }
 
 		Frame frame = XCreateSimpleWindow(disp, DefaultRootWindow(disp),
-										  attrs.x, attrs.y, attrs.width, attrs.height,
+										  attrs.x, attrs.y + TOPBAR_HEIGHT, attrs.width, attrs.height,
 										  BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
 
 		XSelectInput(disp, frame, SubstructureNotifyMask | SubstructureRedirectMask);
 		XAddToSaveSet(disp, window);
-		XReparentWindow(disp, window, frame, 0, 0);
+		XReparentWindow(disp, window, frame, 0, 0 + TOPBAR_HEIGHT);
 		XMapWindow(disp, frame);
 
 		m_frame = frame;
