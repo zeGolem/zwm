@@ -8,9 +8,7 @@
 
 Display *display;
 
-// std::unordered_map<Window, Frame> windows_to_frames;
 std::unordered_map<Frame, ZWM::FramedWindow *> frames_to_framedwindows;
-// std::vector<ZWM::FramedWindow> windows;
 
 Frame find_frame_for_xwindow(Window w)
 {
