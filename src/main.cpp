@@ -123,19 +123,19 @@ int main(void)
 			XMapWindow(display, event_window);
 		}
 
-		case ConfigureRequest:
-		{
-			auto config_request = event.xconfigurerequest;
-			XWindowChanges changes{};
-			changes.x = config_request.x;
-			changes.y = config_request.y;
-			changes.width = config_request.width;
-			changes.border_width = config_request.border_width;
-			// changes.sibling = creq.above;
-			// changes.stack_mode = creq.detail;
-			XConfigureWindow(display, config_request.window, config_request.value_mask, &changes);
-			break;
-		}
+		// case ConfigureRequest:
+		// {
+		// 	auto config_request = event.xconfigurerequest;
+		// 	XWindowChanges changes{};
+		// 	changes.x = config_request.x;
+		// 	changes.y = config_request.y;
+		// 	changes.width = config_request.width;
+		// 	changes.border_width = config_request.border_width;
+		// 	// changes.sibling = creq.above;
+		// 	// changes.stack_mode = creq.detail;
+		// 	XConfigureWindow(display, config_request.window, config_request.value_mask, &changes);
+		// 	break;
+		// }
 
 		default:
 			break;
