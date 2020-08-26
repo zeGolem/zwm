@@ -18,13 +18,10 @@ build: build/zwm
 
 build-dbg: build/zwm.dbg
 
-xephyr: build
+run-xephyr: build
 	src/run-xephyr.sh
 	build/zwm
 
-xephyr-dbg: build
+run-xephyr-dbg: build
 	src/run-xephyr.sh
 	build/zwm.dbg
-
-xephyr-nowm: build
-	src/run-xephyr.sh
