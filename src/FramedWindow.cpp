@@ -9,8 +9,8 @@ namespace ZWM
 		fprintf(stderr, "ERR: Trying to initialize a FramedWindow with no window. This won't work!\n");
 	}
 
-	FramedWindow::FramedWindow(Display *disp, Window window)
-		: m_window(window), m_disp(disp)
+	FramedWindow::FramedWindow(Display *disp, Window window, bool has_top_bar)
+		: m_window(window), m_disp(disp), m_has_top_bar(has_top_bar)
 	{
 		fprintf(stdout, "Creating FramedWindow for xwindow %x\n", window);
 
@@ -28,7 +28,7 @@ namespace ZWM
 		// }
 
 		Frame frame = XCreateSimpleWindow(disp, DefaultRootWindow(disp),
-										  attrs.x, attrs.y + TOPBAR_HEIGHT, attrs.width, attrs.height,
+										  attrs.x, attrs.y + TOPBAR_HEIGHT, attrs.width, attrs.height + TOPBAR_HEIGHT,
 										  BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
 
 		XSelectInput(disp, frame, SubstructureNotifyMask | SubstructureRedirectMask);
@@ -63,7 +63,7 @@ namespace ZWM
 	void FramedWindow::resize(Size new_size)
 	{
 		XResizeWindow(m_disp, m_frame, new_size.width, new_size.height);
-		XResizeWindow(m_disp, m_window, new_size.width, new_size.height);
+		XResizeWindow(m_disp, m_window, new_size.width, new_size.height - TOPBAR_HEIGHT);
 		m_size = new_size;
 	}
 } // namespace ZWM

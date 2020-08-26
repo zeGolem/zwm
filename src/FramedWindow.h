@@ -43,9 +43,11 @@ namespace ZWM
 		Size m_size;
 		Display *m_disp;
 
+		bool m_has_top_bar;
+
 	public:
 		FramedWindow();
-		FramedWindow(Display *, Window framed_window);
+		FramedWindow(Display *, Window framed_window, bool has_top_bar = true);
 		~FramedWindow();
 
 		void move(Position);
@@ -55,5 +57,7 @@ namespace ZWM
 		Frame frame() const { return m_frame; }
 		Position pos() const { return m_pos; }
 		Size size() const { return m_size; }
+		bool has_top_bar() { return m_has_top_bar; }
+		unsigned int top_bar_size() { return m_has_top_bar ? TOPBAR_HEIGHT : 0; }
 	};
 } // namespace ZWM

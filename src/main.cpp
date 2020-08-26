@@ -1,7 +1,5 @@
 #include <X11/Xlib.h>
-#include <algorithm>
 #include <unordered_map>
-#include <vector>
 #include <stdio.h>
 
 #include "FramedWindow.h"
@@ -31,9 +29,7 @@ int main(void)
 
 	XGrabKey(display, XKeysymToKeycode(display, XStringToKeysym("F1")), Mod1Mask | Mod2Mask,
 			 DefaultRootWindow(display), True, GrabModeAsync, GrabModeAsync);
-	XGrabButton(display, 1, Mod1Mask | Mod2Mask, DefaultRootWindow(display), True,
-				ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, 0, 0);
-	XGrabButton(display, 3, Mod1Mask | Mod2Mask, DefaultRootWindow(display), True,
+	XGrabButton(display, AnyButton, AnyModifier, DefaultRootWindow(display), True,
 				ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, 0, 0);
 
 	// To get maprequest events
@@ -66,7 +62,7 @@ int main(void)
 
 	// Loop initialization
 
-	ZWM::Position last_position{};
+	ZWM::Position last_cursor_position{};
 	XEvent event;
 	XWindowAttributes attr;
 
@@ -90,52 +86,74 @@ int main(void)
 			if (event.xbutton.subwindow)
 			{
 				XGetWindowAttributes(display, event.xbutton.subwindow, &attr);
-				last_position = {event.xbutton.x_root, event.xbutton.y_root};
+				last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
 			}
 			break;
 		}
 
 		case MotionNotify:
 		{
-			ZWM::Position current_position{event.xbutton.x_root, event.xbutton.y_root};
+			ZWM::Position current_cursor_position{event.xbutton.x_root, event.xbutton.y_root};
 			if (event.xbutton.subwindow)
 			{
+				// The cursor is on this window. This should actually be the window's frame.
 				auto window = event.xbutton.subwindow;
+
+				XWindowAttributes win_attrs{};
+				XGetWindowAttributes(display, window, &win_attrs);
+
+				ZWM::Position window_position{win_attrs.x, win_attrs.y};
 
 				if (!frames_to_framedwindows.count(window))
 				{
-					fprintf(stderr, "ERR: Trying to move invalid window!\n");
+					fprintf(stderr, "ERR: Motion on invalid window!\n");
 					break;
 				}
 
-				int xdiff = current_position.x - last_position.x;
-				int ydiff = current_position.y - last_position.y;
+				int xdiff = current_cursor_position.x - last_cursor_position.x;
+				int ydiff = current_cursor_position.y - last_cursor_position.y;
 
 				auto framed_window = frames_to_framedwindows[window];
+				if (event.xbutton.state & Mod1Mask) // If ALT is pressed
+				{									// We handle keybinding for position-agnostic actions
 
-				if (event.xbutton.state & Button1Mask) // left click; move
-				{
-					ZWM::Position new_pos = framed_window->pos();
-					new_pos.x += xdiff;
-					new_pos.y += ydiff;
-					framed_window->move(new_pos);
+					if (event.xbutton.state & Button1Mask) // left click; move
+					{
+						ZWM::Position new_pos = framed_window->pos();
+						new_pos.x += xdiff;
+						new_pos.y += ydiff;
+						framed_window->move(new_pos);
+					}
+					else if (event.xbutton.state & Button3Mask) // right click; resize
+					{
+						ZWM::Size new_size = framed_window->size();
+						new_size.width += xdiff;
+						new_size.height += ydiff;
+						framed_window->resize(new_size);
+					}
 				}
-				else if (event.xbutton.state & Button3Mask) // right click; resize
+				else
 				{
-					ZWM::Size new_size = framed_window->size();
-					new_size.width += xdiff;
-					new_size.height += ydiff;
-					framed_window->resize(new_size);
+					if (current_cursor_position.y - window_position.y < framed_window->top_bar_size()) // if cursor is in the top bar
+					{
+						if (event.xbutton.state & Button1Mask) // if is pressing left click
+						{									   // move the window
+							ZWM::Position new_pos = framed_window->pos();
+							new_pos.x += xdiff;
+							new_pos.y += ydiff;
+							framed_window->move(new_pos);
+						}
+					}
 				}
 			}
 
-			last_position = current_position;
+			last_cursor_position = current_cursor_position;
 			break;
 		}
 
 		case ButtonRelease:
 		{
-			last_position = ZWM::Position{};
+			last_cursor_position = ZWM::Position{};
 			break;
 		}
 
