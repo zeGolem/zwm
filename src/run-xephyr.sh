@@ -7,5 +7,9 @@ sleep 1
 
 export DISPLAY=$xDisplay
 
-xclock &
-konsole &
+xterm &
+
+echo "Setup done, now running :"
+echo $@
+
+$@
