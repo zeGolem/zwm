@@ -1,6 +1,7 @@
 #include "FramedWindow.h"
 
 #include <stdio.h>
+#include <string>
 
 namespace ZWM
 {
@@ -39,6 +40,19 @@ namespace ZWM
 		m_frame = frame;
 		m_pos = {attrs.x, attrs.y};
 		m_size = {attrs.width, attrs.height};
+
+		auto window_name_atom = XInternAtom(m_disp, "_NET_WM_NAME", false);
+		Atom return_type;
+		int format_returned;
+		unsigned long bytes_after_return, items_returned;
+		unsigned char *returned_data;
+
+		XGetWindowProperty(m_disp, window, window_name_atom,
+						   0, 1, false, AnyPropertyType,
+						   &return_type, &format_returned, &items_returned, &bytes_after_return, &returned_data);
+
+		if (returned_data)
+			set_title(reinterpret_cast<char *>(returned_data));
 	}
 
 	FramedWindow::~FramedWindow()
@@ -65,5 +79,26 @@ namespace ZWM
 		XResizeWindow(m_disp, m_frame, new_size.width, new_size.height);
 		XResizeWindow(m_disp, m_window, new_size.width, new_size.height - TOPBAR_HEIGHT);
 		m_size = new_size;
+	}
+
+	void FramedWindow::draw_text(std::string text, Position position)
+	{
+		auto black = BlackPixel(m_disp, DefaultScreen(m_disp));
+		auto white = WhitePixel(m_disp, DefaultScreen(m_disp));
+		auto gc = XCreateGC(m_disp, m_frame, 0, 0);
+
+		XSetForeground(m_disp, gc, black);
+		XSetBackground(m_disp, gc, black);
+
+		auto font = XLoadQueryFont(m_disp, "fixed");
+		XSetFont(m_disp, gc, font->fid);
+		XClearWindow(m_disp, m_frame);
+		XDrawString(m_disp, m_frame, gc, position.x, position.y, text.c_str(), text.length());
+	}
+
+	void FramedWindow::set_title(std::string new_title)
+	{
+		draw_text(new_title, {5, TOPBAR_HEIGHT - 5});
+		m_title = new_title;
 	}
 } // namespace ZWM

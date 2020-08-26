@@ -1,5 +1,6 @@
 #pragma once
 #include <X11/Xlib.h>
+#include <string>
 
 typedef Window Frame;
 
@@ -42,22 +43,28 @@ namespace ZWM
 		Position m_pos;
 		Size m_size;
 		Display *m_disp;
+		std::string m_title;
 
 		bool m_has_top_bar;
+
+		void draw_text(std::string, Position);
 
 	public:
 		FramedWindow();
 		FramedWindow(Display *, Window framed_window, bool has_top_bar = true);
 		~FramedWindow();
 
-		void move(Position);
-		void resize(Size);
+		void move(const Position);
+		void resize(const Size);
+
+		void set_title(const std::string);
 
 		Window framed_window() const { return m_window; }
 		Frame frame() const { return m_frame; }
 		Position pos() const { return m_pos; }
 		Size size() const { return m_size; }
-		bool has_top_bar() { return m_has_top_bar; }
-		unsigned int top_bar_size() { return m_has_top_bar ? TOPBAR_HEIGHT : 0; }
+		bool has_top_bar() const { return m_has_top_bar; }
+		unsigned int top_bar_size() const { return m_has_top_bar ? TOPBAR_HEIGHT : 0; }
+		std::string title() const { return m_title; }
 	};
 } // namespace ZWM
