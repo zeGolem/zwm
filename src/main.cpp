@@ -187,6 +187,8 @@ int main(void)
 		}
 
 		// Events to ignore.
+		case CreateNotify:
+		case DestroyNotify:
 		case ConfigureNotify:
 		case MapNotify:
 		case ReparentNotify:
