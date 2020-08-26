@@ -66,22 +66,4 @@ namespace ZWM
 		XResizeWindow(m_disp, m_window, new_size.width, new_size.height);
 		m_size = new_size;
 	}
-
-	// void FramedWindow::move_and_resize(Position new_pos, Size new_size)
-	// {
-	// 	XMoveResizeWindow(m_disp, m_frame,
-	// 					  new_pos.x,
-	// 					  new_pos.y,
-	// 					  new_size.width,
-	// 					  new_size.height);
-
-	// 	XMoveResizeWindow(m_disp, m_framed_window,
-	// 					  new_pos.x + BORDER_WIDTH,
-	// 					  new_pos.y + BORDER_WIDTH,
-	// 					  new_size.width,
-	// 					  new_size.height);
-
-	// 	m_pos = new_pos;
-	// 	m_size = new_size;
-	// }
 } // namespace ZWM
