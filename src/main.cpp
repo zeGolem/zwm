@@ -115,9 +115,9 @@ int main(void)
 		case MapRequest:
 		{
 			Window event_window = event.xmaprequest.window;
-			ZWM::FramedWindow *framed_window = new ZWM::FramedWindow(display, event_window);
-			frames_to_framedwindows[framed_window->frame()] = framed_window;
-			XMapWindow(display, event_window);
+			ZWM::FramedWindow *framed_window = new ZWM::FramedWindow(display, event_window); // Create a frame for the window
+			frames_to_framedwindows[framed_window->frame()] = framed_window;				 // save it
+			XMapWindow(display, event_window);												 // Actually map the window
 		}
 
 		case ConfigureRequest:
