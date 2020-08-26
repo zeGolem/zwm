@@ -12,6 +12,18 @@ Display *display;
 std::unordered_map<Frame, ZWM::FramedWindow *> frames_to_framedwindows;
 // std::vector<ZWM::FramedWindow> windows;
 
+Frame find_frame_for_xwindow(Window w)
+{
+	for (auto value : frames_to_framedwindows)
+	{
+		fprintf(stdout, "checking window %u against %u\n", w, value.second->framed_window());
+		if (value.second->framed_window() == w)
+			return value.first;
+	}
+	fprintf(stderr, "Didn't find a frame for window %u\n", w);
+	return 0;
+}
+
 int main(void)
 {
 	fprintf(stdout, "Hello from zwm!\n");
@@ -135,6 +147,30 @@ int main(void)
 			auto *framed_window = new ZWM::FramedWindow(display, event_window); // Create a frame for the window
 			frames_to_framedwindows[framed_window->frame()] = framed_window;	// save it
 			XMapWindow(display, event_window);									// Actually map the window
+			break;
+		}
+
+		case UnmapNotify:
+		{
+			auto event_window = event.xunmap.window;
+
+			auto frame = find_frame_for_xwindow(event_window);
+			if (frame == 0) {
+				fprintf(stderr, "Unmapping a window that was not framed! Ignoring…\n");
+				break;
+			}
+
+			if (event.xunmap.event == DefaultRootWindow(display)) {
+				// I have no idea why or how this happens, just copy-pasted this from
+				// https://github.com/jichu4n/basic_wm/blob/75483547ae0ddb7585c28af86b9c957ba6c3302b/window_manager.cpp#L310
+				// And it works…
+				// The `event` property isn't even documented in the man page, I have no idea what this does, but it prevents
+				// windows that shouldn't be unmapped from being unmapped, so it works I guess
+				fprintf(stderr, "Ignoring unmap notification for window %u\n", event_window);
+				break;
+			}
+			delete frames_to_framedwindows[frame];
+			break;
 		}
 
 		case ConfigureRequest:
