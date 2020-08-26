@@ -14,6 +14,7 @@ std::unordered_map<Frame, ZWM::FramedWindow *> frames_to_framedwindows;
 
 int main(void)
 {
+	fprintf(stdout, "Hello from zwm!\n");
 
 	if (!(display = XOpenDisplay(0x0)))
 		return 1;
@@ -37,10 +38,11 @@ int main(void)
 	XEvent event;
 	XWindowAttributes attr;
 
+	fprintf(stdout, "ZWM initialized! Starting event loop\n");
+
 	for (;;)
 	{
 		XNextEvent(display, &event);
-		fprintf(stdout, "Got event %d\n", event.type);
 
 		switch (event.type)
 		{
@@ -66,7 +68,6 @@ int main(void)
 			ZWM::Position current_position{event.xbutton.x_root, event.xbutton.y_root};
 			if (event.xbutton.subwindow)
 			{
-				fprintf(stdout, "Clicked on a window with button %u\n", event.xbutton.button);
 				auto window = event.xbutton.subwindow;
 				int xdiff = current_position.x - last_position.x;
 				int ydiff = current_position.y - last_position.y;
@@ -86,7 +87,6 @@ int main(void)
 
 					if (event.xbutton.state & Button1Mask) // left click; move
 					{
-						fprintf(stdout, "Moving window %x with frame %x\n", framed_window->framed_window(), window);
 						ZWM::Position new_pos = framed_window->pos();
 						new_pos.x += xdiff;
 						new_pos.y += ydiff;
@@ -94,11 +94,9 @@ int main(void)
 					}
 					else if (event.xbutton.state & Button3Mask) // right click; resize
 					{
-						fprintf(stdout, "Resizing window %x with frame %x\n", framed_window->framed_window(), window);
 						ZWM::Size new_size = framed_window->size();
 						new_size.width += xdiff;
 						new_size.height += ydiff;
-						// ZWM::Size new_size{xdiff, ydiff};
 						framed_window->resize(new_size);
 					}
 				}
@@ -119,7 +117,6 @@ int main(void)
 			Window event_window = event.xmaprequest.window;
 			ZWM::FramedWindow *framed_window = new ZWM::FramedWindow(display, event_window);
 			frames_to_framedwindows[framed_window->frame()] = framed_window;
-			// windows.push_back(*framed_window);
 			XMapWindow(display, event_window);
 		}
 
@@ -127,8 +124,6 @@ int main(void)
 		{
 			auto config_request = event.xconfigurerequest;
 			XWindowChanges changes{};
-			fprintf(stdout, "Recieved config request with x=%d,y=%d width=%d,height=%d border_width=%d",
-					config_request.x, config_request.y, config_request.width, config_request.height, config_request.border_width);
 			changes.x = config_request.x;
 			changes.y = config_request.y;
 			changes.width = config_request.width;
@@ -139,6 +134,7 @@ int main(void)
 		}
 
 		default:
+			fprintf(stdout, "Unhandled event %d\n", event.type);
 			break;
 		}
 	}
