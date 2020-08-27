@@ -152,9 +152,9 @@ int main(void)
 		case MapRequest:
 		{
 			Window event_window = event.xmaprequest.window;
+			XMapWindow(display, event_window);									// Actually map the window
 			auto *framed_window = new ZWM::FramedWindow(display, event_window); // Create a frame for the window
 			frames_to_framedwindows[framed_window->frame()] = framed_window;	// save it
-			XMapWindow(display, event_window);									// Actually map the window
 			break;
 		}
 

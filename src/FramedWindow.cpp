@@ -22,7 +22,7 @@ namespace ZWM
 			return;
 		}
 
-		if (attrs.override_redirect || attrs.map_state == IsUnviewable)
+		if (attrs.override_redirect || attrs.map_state == IsUnviewable || attrs.map_state == IsUnmapped)
 		{
 			fprintf(stdout, "Skipping framing on window %x because it's invisible\n", window);
 			return;
