@@ -22,14 +22,14 @@ namespace ZWM
 			return;
 		}
 
-		// if (attrs.override_redirect || attrs.map_state != IsViewable)
-		// {
-		// 	fprintf(stdout, "Skipping framing on window %x because it's invisible\n", window);
-		// 	return;
-		// }
+		if (attrs.override_redirect || attrs.map_state == IsUnviewable)
+		{
+			fprintf(stdout, "Skipping framing on window %x because it's invisible\n", window);
+			return;
+		}
 
 		Frame frame = XCreateSimpleWindow(disp, DefaultRootWindow(disp),
-										  attrs.x, attrs.y + TOPBAR_HEIGHT, attrs.width, attrs.height + TOPBAR_HEIGHT,
+										  attrs.x, attrs.y, attrs.width, attrs.height + TOPBAR_HEIGHT,
 										  BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
 
 		XSelectInput(disp, frame, SubstructureNotifyMask | SubstructureRedirectMask);
