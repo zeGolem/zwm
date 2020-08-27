@@ -71,7 +71,7 @@ int main(void)
 		XNextEvent(display, &event);
 
 		switch (event.type)
-		// {
+		{
 		// case KeyPress:
 		// {
 		// 	if (event.xkey.subwindow)
