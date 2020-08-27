@@ -1,5 +1,6 @@
-SOURCES = src/main.cpp \
-		  src/FramedWindow.cpp
+SOURCES = src/main.cpp          \
+		  src/FramedWindow.cpp  \
+		  src/WindowManager.cpp \
 
 build/zwm: $(SOURCES) src/*.h
 	g++ -lX11 $(SOURCES) -o build/zwm
