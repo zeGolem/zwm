@@ -76,6 +76,8 @@ namespace ZWM
 
 	void FramedWindow::resize(Size new_size)
 	{
+		if (new_size.width < 1 || new_size.height - TOPBAR_HEIGHT < 1)
+			return;
 		XResizeWindow(m_disp, m_frame, new_size.width, new_size.height);
 		XResizeWindow(m_disp, m_window, new_size.width, new_size.height - TOPBAR_HEIGHT);
 		m_size = new_size;
