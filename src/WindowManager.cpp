@@ -25,14 +25,14 @@ namespace ZWM
 
     int WindowManager::init()
     {
-        if (!(m_display = XOpenDisplay(0x0)))
+        if (!(m_display = XOpenDisplay(0)))
         {
             fprintf(stderr, "Failed to open display!\n");
             return 1;
         }
 
         XGrabButton(m_display, Button1Mask | Button3Mask, AnyModifier, DefaultRootWindow(m_display), True,
-                    ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, 0, 0);
+                    ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
 
         // To get maprequest events
         XSelectInput(
