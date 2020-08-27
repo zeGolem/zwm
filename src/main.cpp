@@ -27,8 +27,6 @@ int main(void)
 	if (!(display = XOpenDisplay(0x0)))
 		return 1;
 
-	XGrabKey(display, XKeysymToKeycode(display, XStringToKeysym("F1")), Mod1Mask | Mod2Mask,
-			 DefaultRootWindow(display), True, GrabModeAsync, GrabModeAsync);
 	XGrabButton(display, Button1Mask | Button3Mask, AnyModifier, DefaultRootWindow(display), True,
 				ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, 0, 0);
 
@@ -73,13 +71,13 @@ int main(void)
 		XNextEvent(display, &event);
 
 		switch (event.type)
-		{
-		case KeyPress:
-		{
-			if (event.xkey.subwindow)
-				XRaiseWindow(display, event.xkey.subwindow);
-			break;
-		}
+		// {
+		// case KeyPress:
+		// {
+		// 	if (event.xkey.subwindow)
+		// 		XRaiseWindow(display, event.xkey.subwindow);
+		// 	break;
+		// }
 
 		case ButtonPress:
 		{
