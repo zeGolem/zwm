@@ -85,8 +85,11 @@ int main(void)
 		{
 			if (event.xbutton.subwindow)
 			{
-				XGetWindowAttributes(display, event.xbutton.subwindow, &attr);
+				auto window = event.xbutton.subwindow;
+				XGetWindowAttributes(display, window, &attr);
 				last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
+				XRaiseWindow(display, window);
+				XSetInputFocus(display, window, RevertToParent, CurrentTime);
 			}
 			break;
 		}
