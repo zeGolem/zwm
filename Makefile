@@ -1,10 +1,10 @@
 SOURCES = src/main.cpp \
 		  src/FramedWindow.cpp
 
-build/zwm: $(SOURCES)
+build/zwm: $(SOURCES) src/*.h
 	g++ -lX11 $(SOURCES) -o build/zwm
 
-build/zwm.dbg: $(SOURCES)
+build/zwm.dbg: $(SOURCES) src/*.h
 	g++ -ggdb -g3 -lX11 $(SOURCES) -o build/zwm.dbg
  
 
