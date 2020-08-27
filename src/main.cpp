@@ -29,7 +29,7 @@ int main(void)
 
 	XGrabKey(display, XKeysymToKeycode(display, XStringToKeysym("F1")), Mod1Mask | Mod2Mask,
 			 DefaultRootWindow(display), True, GrabModeAsync, GrabModeAsync);
-	XGrabButton(display, AnyButton, AnyModifier, DefaultRootWindow(display), True,
+	XGrabButton(display, Button1Mask | Button3Mask, AnyModifier, DefaultRootWindow(display), True,
 				ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, 0, 0);
 
 	// To get maprequest events
