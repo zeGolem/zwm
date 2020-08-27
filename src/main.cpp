@@ -12,11 +12,9 @@ Frame find_frame_for_xwindow(Window w)
 {
 	for (auto value : frames_to_framedwindows)
 	{
-		fprintf(stdout, "checking window %u against %u\n", w, value.second->framed_window());
 		if (value.second->framed_window() == w)
 			return value.first;
 	}
-	fprintf(stderr, "Didn't find a frame for window %u\n", w);
 	return 0;
 }
 
@@ -62,7 +60,7 @@ int main(void)
 
 	ZWM::Position last_cursor_position{};
 	XEvent event;
-	XWindowAttributes attr;
+	XWindowAttributes attr{};
 
 	fprintf(stdout, "ZWM initialized! Starting event loop\n");
 
@@ -72,13 +70,6 @@ int main(void)
 
 		switch (event.type)
 		{
-		// case KeyPress:
-		// {
-		// 	if (event.xkey.subwindow)
-		// 		XRaiseWindow(display, event.xkey.subwindow);
-		// 	break;
-		// }
-
 		case ButtonPress:
 		{
 			if (event.xbutton.subwindow)
