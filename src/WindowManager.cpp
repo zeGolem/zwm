@@ -31,7 +31,9 @@ namespace ZWM
             return 1;
         }
 
-        XGrabButton(m_display, Button1Mask | Button3Mask, AnyModifier, DefaultRootWindow(m_display), True,
+        XGrabButton(m_display, Button1Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
+                    ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
+        XGrabButton(m_display, Button3Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
                     ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
 
         // To get maprequest events
@@ -84,14 +86,26 @@ namespace ZWM
             {
             case ButtonPress:
             {
-                if (event.xbutton.subwindow)
+                // TODO: Cleanup, this could be made waaaay nicer…
+                if (event.xbutton.subwindow) // clicked on a window
                 {
                     auto window = event.xbutton.subwindow;
                     XGetWindowAttributes(m_display, window, &attr);
                     last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
+
                     XRaiseWindow(m_display, window);
                     XSetInputFocus(m_display, window, RevertToParent, CurrentTime);
                 }
+                if (event.xbutton.window != event.xbutton.root) // Clicked on a window's frame
+                {
+                    auto window = event.xbutton.window;
+                    XGetWindowAttributes(m_display, window, &attr);
+                    last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
+
+                    XRaiseWindow(m_display, window);
+                    XSetInputFocus(m_display, window, RevertToParent, CurrentTime);
+                }
+
                 break;
             }
 
@@ -136,18 +150,21 @@ namespace ZWM
                             framed_window->resize(new_size);
                         }
                     }
-                    else
+                }
+                if (event.xbutton.window != event.xbutton.root)
+                {
+                    auto window = event.xbutton.window;
+                    if (event.xbutton.state & Button1Mask)
                     {
-                        if (current_cursor_position.y - window_position.y < framed_window->top_bar_size()) // if cursor is in the top bar
-                        {
-                            if (event.xbutton.state & Button1Mask) // if is pressing left click
-                            {                                      // move the window
-                                ZWM::Position new_pos = framed_window->pos();
-                                new_pos.x += xdiff;
-                                new_pos.y += ydiff;
-                                framed_window->move(new_pos);
-                            }
-                        }
+                        int xdiff = current_cursor_position.x - last_cursor_position.x;
+                        int ydiff = current_cursor_position.y - last_cursor_position.y;
+
+                        auto framed_window = m_frames_to_framedwindows[window];
+
+                        ZWM::Position new_pos = framed_window->pos();
+                        new_pos.x += xdiff;
+                        new_pos.y += ydiff;
+                        framed_window->move(new_pos);
                     }
                 }
 

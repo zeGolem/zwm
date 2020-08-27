@@ -32,7 +32,9 @@ namespace ZWM
 										  attrs.x, attrs.y, attrs.width, attrs.height + TOPBAR_HEIGHT,
 										  BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
 
-		XSelectInput(disp, frame, SubstructureNotifyMask | SubstructureRedirectMask);
+		// Get events from the frame
+		XSelectInput(disp, frame, SubstructureNotifyMask | SubstructureRedirectMask | ButtonPressMask | ButtonMotionMask);
+
 		XAddToSaveSet(disp, window);
 		XReparentWindow(disp, window, frame, 0, 0 + TOPBAR_HEIGHT);
 		XMapWindow(disp, frame);
