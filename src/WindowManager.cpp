@@ -151,7 +151,7 @@ namespace ZWM
                         }
                     }
                 }
-                if (event.xbutton.window != event.xbutton.root)
+                if (event.xbutton.window != event.xbutton.root) // Event on a non-root window (a frame!)
                 {
                     auto window = event.xbutton.window;
                     if (event.xbutton.state & Button1Mask)
