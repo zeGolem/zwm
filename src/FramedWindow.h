@@ -9,11 +9,20 @@ namespace ZWM
 	struct Position
 	{
 		int x, y;
-		Position &operator+=(const Position &rhs)
+		auto operator+=(const Position &rhs)
 		{
 			this->x += rhs.x;
 			this->y += rhs.y;
 			return *this;
+		}
+
+		auto operator==(const Position &rhs)
+		{
+			return this->x == rhs.x && this->y == rhs.y;
+		}
+		auto operator!=(const Position &rhs)
+		{
+			return !(*this == rhs);
 		}
 	};
 
@@ -25,6 +34,15 @@ namespace ZWM
 			this->width += rhs.width;
 			this->height += rhs.height;
 			return *this;
+		}
+
+		auto operator==(const Size &rhs)
+		{
+			return this->width == rhs.width && this->height == rhs.height;
+		}
+		auto operator!=(const Size &rhs)
+		{
+			return !(*this == rhs);
 		}
 	};
 
