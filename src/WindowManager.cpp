@@ -215,13 +215,28 @@ namespace ZWM
             case ConfigureRequest:
             {
                 auto config_request = event.xconfigurerequest;
+                auto window = config_request.window;
                 XWindowChanges changes{};
                 changes.x = config_request.x;
                 changes.y = config_request.y;
                 changes.width = config_request.width;
                 changes.height = config_request.height;
                 changes.border_width = config_request.border_width;
-                XConfigureWindow(m_display, config_request.window, config_request.value_mask, &changes);
+
+                Window windows_frame = find_frame_for_xwindow(window);
+                if (windows_frame)
+                {
+                    auto framed_window = m_frames_to_framedwindows[windows_frame];
+                    ZWM::Position new_pos{changes.x, changes.y};
+                    ZWM::Size new_size{changes.width, changes.height};
+
+                    if (new_pos != framed_window->pos())
+                        framed_window->move(new_pos);
+                    if (new_size != framed_window->size())
+                        framed_window->resize(new_size);
+                }
+
+                XConfigureWindow(m_display, window, config_request.value_mask, &changes);
                 break;
             }
 
