@@ -43,18 +43,10 @@ namespace ZWM
 		m_pos = {attrs.x, attrs.y};
 		m_size = {attrs.width, attrs.height};
 
-		auto window_name_atom = XInternAtom(m_disp, "_NET_WM_NAME", false);
-		Atom return_type;
-		int format_returned;
-		unsigned long bytes_after_return, items_returned;
-		unsigned char *returned_data;
-
-		XGetWindowProperty(m_disp, window, window_name_atom,
-						   0, 1, false, AnyPropertyType,
-						   &return_type, &format_returned, &items_returned, &bytes_after_return, &returned_data);
-
-		if (returned_data)
-			set_title(reinterpret_cast<char *>(returned_data));
+		char *window_name;
+		XFetchName(m_disp, window, &window_name);
+		if (window_name)
+			set_title(std::string(window_name));
 	}
 
 	FramedWindow::~FramedWindow()
