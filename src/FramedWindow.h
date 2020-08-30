@@ -76,6 +76,7 @@ namespace ZWM
 		void resize(const Size);
 
 		void set_title(const std::string);
+		void redraw_title();
 
 		Window framed_window() const { return m_window; }
 		Frame frame() const { return m_frame; }

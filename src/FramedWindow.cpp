@@ -66,6 +66,7 @@ namespace ZWM
 	{
 		XMoveWindow(m_disp, m_frame, new_pos.x, new_pos.y);
 		m_pos = new_pos;
+		redraw_title();
 	}
 
 	void FramedWindow::resize(Size new_size)
@@ -75,6 +76,7 @@ namespace ZWM
 		XResizeWindow(m_disp, m_frame, new_size.width, new_size.height);
 		XResizeWindow(m_disp, m_window, new_size.width, new_size.height - TOPBAR_HEIGHT);
 		m_size = new_size;
+		redraw_title();
 	}
 
 	void FramedWindow::draw_text(std::string text, Position position)
@@ -94,7 +96,12 @@ namespace ZWM
 
 	void FramedWindow::set_title(std::string new_title)
 	{
-		draw_text(new_title, {5, TOPBAR_HEIGHT - 5});
 		m_title = new_title;
+		redraw_title();
+	}
+
+	void FramedWindow::redraw_title()
+	{
+		draw_text(m_title, {5, TOPBAR_HEIGHT - 5});
 	}
 } // namespace ZWM
