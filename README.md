@@ -45,6 +45,7 @@ If you want to install this despite all those warnings, you'll have to figure it
 
 * You should be able to click anywhere on a window to raise it to the from
 * Focus shouldn't move with the mouse, the last clicked window should be focused
+* Multiple physical displays are not supported
 
 ### Features to add
 
