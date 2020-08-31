@@ -44,6 +44,10 @@ If you want to install this despite all those warnings, you'll have to figure it
 ### Bugs
 
 * You should be able to click anywhere on a window to raise it to the from
+    * Potential fix: Grab all buttons when the window is inactive, and ungrab them once it's active. That way
+      we get the input when we need it, and the running program gets it when it needs it. This would
+      also prevent inputs from going to the wrong window…  
+      **This fix was inspired by dwm**
 * Focus shouldn't move with the mouse, the last clicked window should be focused
 * Multiple physical displays are not supported
 
