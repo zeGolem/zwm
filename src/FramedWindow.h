@@ -66,6 +66,7 @@ namespace ZWM
 		bool m_has_top_bar;
 
 		void draw_text(std::string, Position);
+		void draw_image(char* data, Position, Size);
 
 	public:
 		FramedWindow();

@@ -94,6 +94,14 @@ namespace ZWM
 		XDrawString(m_disp, m_frame, gc, position.x, position.y, text.c_str(), text.length());
 	}
 
+	void FramedWindow::draw_image(char *data, Position pos, Size size)
+	{
+		// Copied from http://users.polytech.unice.fr/~buffa/cours/X11_Motif/cours/XlibImages.html
+		auto img = XCreateImage(m_disp, DefaultVisual(m_disp, 0), 8, ZPixmap, 0, data, size.width, size.height, 8, 0);
+		auto gc = XCreateGC(m_disp, m_frame, 0, 0);
+		XPutImage(m_disp, m_frame, gc, img, 0, 0, pos.x, pos.y, size.width, size.height);
+	}
+
 	void FramedWindow::set_title(std::string new_title)
 	{
 		m_title = new_title;
