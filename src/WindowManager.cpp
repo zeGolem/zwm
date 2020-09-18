@@ -1,6 +1,7 @@
 #include "WindowManager.h"
 
 #include <stdio.h>
+#include <X11/cursorfont.h>
 
 namespace ZWM
 {
@@ -63,6 +64,8 @@ namespace ZWM
 
         XFree(existing_windows);
         XUngrabServer(m_display);
+        auto default_cursor = XCreateFontCursor(m_display, XC_arrow);
+        XDefineCursor(m_display, DefaultRootWindow(m_display), default_cursor);
         return 0;
     }
 
