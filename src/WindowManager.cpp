@@ -193,6 +193,16 @@ namespace ZWM
             case UnmapNotify:
             {
                 auto event_window = event.xunmap.window;
+                if (event.xunmap.event == DefaultRootWindow(m_display))
+                {
+                    // I have no idea why or how this happens, just copy-pasted this from
+                    // https://github.com/jichu4n/basic_wm/blob/75483547ae0ddb7585c28af86b9c957ba6c3302b/window_manager.cpp#L310
+                    // And it works…
+                    // The `event` property isn't even documented in the man page, I have no idea what this does, but it prevents
+                    // windows that shouldn't be unmapped from being unmapped, so it works I guess
+                    fprintf(stderr, "Ignoring unmap notification for xwindow 0x%x\n", event_window);
+                    break;
+                }
 
                 auto frame = find_frame_for_xwindow(event_window);
                 if (frame == 0)
@@ -201,16 +211,6 @@ namespace ZWM
                     break;
                 }
 
-                if (event.xunmap.event == DefaultRootWindow(m_display))
-                {
-                    // I have no idea why or how this happens, just copy-pasted this from
-                    // https://github.com/jichu4n/basic_wm/blob/75483547ae0ddb7585c28af86b9c957ba6c3302b/window_manager.cpp#L310
-                    // And it works…
-                    // The `event` property isn't even documented in the man page, I have no idea what this does, but it prevents
-                    // windows that shouldn't be unmapped from being unmapped, so it works I guess
-                    fprintf(stderr, "Ignoring unmap notification for window %u\n", event_window);
-                    break;
-                }
                 delete m_frames_to_framedwindows[frame];
                 break;
             }

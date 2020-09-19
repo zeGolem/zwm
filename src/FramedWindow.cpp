@@ -47,18 +47,19 @@ namespace ZWM
 		XFetchName(m_disp, window, &window_name);
 		if (window_name)
 			set_title(std::string(window_name));
+		
+		fprintf(stdout, "Created frame for xwindow 0x%x with name '%s'\n", window, window_name);
 	}
 
 	FramedWindow::~FramedWindow()
 	{
-		fprintf(stdout, "Destroying framed window\n");
-		XUnmapWindow(m_disp, m_frame);
+		fprintf(stdout, "Destroying framed window (xwindow=0x%x)\n", m_window);
 
 		XReparentWindow(m_disp, m_window, DefaultRootWindow(m_disp),
 						m_pos.x, m_pos.y);
 
+		XUnmapWindow(m_disp, m_frame);
 		XRemoveFromSaveSet(m_disp, m_window);
-
 		XDestroyWindow(m_disp, m_frame);
 	}
 
