@@ -32,9 +32,7 @@ namespace ZWM
             return 1;
         }
 
-        XGrabButton(m_display, Button1Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
-                    ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
-        XGrabButton(m_display, Button3Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
+        XGrabButton(m_display, Button1Mask | Button3Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
                     ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
 
         // To get maprequest events
