@@ -24,6 +24,27 @@ namespace ZWM
         return 0;
     }
 
+    ulong WindowManager::black_pixel()
+    {
+        if (!m_black_pixel)
+            m_black_pixel = BlackPixel(m_display, DefaultScreen(m_display));
+        return m_black_pixel;
+    }
+
+    ulong WindowManager::white_pixel()
+    {
+        if (!m_white_pixel)
+            m_white_pixel = WhitePixel(m_display, DefaultScreen(m_display));
+        return m_white_pixel;
+    }
+
+    XFontStruct *WindowManager::default_font()
+    {
+        if (!m_default_font)
+            m_default_font = XLoadQueryFont(m_display, "fixed");
+        return m_default_font;
+    }
+
     int WindowManager::init()
     {
         if (!(m_display = XOpenDisplay(0)))

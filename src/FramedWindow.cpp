@@ -1,4 +1,5 @@
 #include "FramedWindow.h"
+#include "WindowManager.h"
 
 #include <stdio.h>
 #include <string>
@@ -82,14 +83,14 @@ namespace ZWM
 
 	void FramedWindow::draw_text(std::string text, Position position)
 	{
-		auto black = BlackPixel(m_disp, DefaultScreen(m_disp));
-		auto white = WhitePixel(m_disp, DefaultScreen(m_disp));
+		auto black = ZWM::WindowManager::the()->black_pixel();
+		auto white = ZWM::WindowManager::the()->white_pixel();
 		auto gc = XCreateGC(m_disp, m_frame, 0, 0);
 
 		XSetForeground(m_disp, gc, black);
 		XSetBackground(m_disp, gc, black);
 
-		auto font = XLoadQueryFont(m_disp, "fixed");
+		auto font = ZWM::WindowManager::the()->default_font();
 		XSetFont(m_disp, gc, font->fid);
 		XClearWindow(m_disp, m_frame);
 		XDrawString(m_disp, m_frame, gc, position.x, position.y, text.c_str(), text.length());
