@@ -94,7 +94,6 @@ namespace ZWM
 
         ZWM::Position last_cursor_position{};
         XEvent event;
-        XWindowAttributes attr{};
 
         fprintf(stdout, "ZWM initialized! Starting event loop\n");
 
@@ -115,7 +114,7 @@ namespace ZWM
                         window = event.xbutton.subwindow;
                     else
                         window = event.xbutton.window;
-                    XGetWindowAttributes(m_display, window, &attr);
+
                     last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
 
                     XRaiseWindow(m_display, window);
