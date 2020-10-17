@@ -134,24 +134,19 @@ namespace ZWM
             case MotionNotify:
             {
                 ZWM::Position current_cursor_position{event.xbutton.x_root, event.xbutton.y_root};
+                int xdiff = current_cursor_position.x - last_cursor_position.x;
+                int ydiff = current_cursor_position.y - last_cursor_position.y;
+
                 if (event.xbutton.subwindow)
                 {
                     // The cursor is on this window. This should actually be the window's frame.
                     auto window = event.xbutton.subwindow;
-
-                    XWindowAttributes win_attrs{};
-                    XGetWindowAttributes(m_display, window, &win_attrs);
-
-                    ZWM::Position window_position{win_attrs.x, win_attrs.y};
 
                     if (!m_frames_to_framedwindows.count(window))
                     {
                         fprintf(stderr, "ERR: Motion on invalid window!\n");
                         break;
                     }
-
-                    int xdiff = current_cursor_position.x - last_cursor_position.x;
-                    int ydiff = current_cursor_position.y - last_cursor_position.y;
 
                     auto framed_window = m_frames_to_framedwindows[window];
                     if (event.xbutton.state & Mod1Mask) // If ALT is pressed
@@ -178,9 +173,11 @@ namespace ZWM
                     auto window = event.xbutton.window;
                     if (event.xbutton.state & Button1Mask)
                     {
-                        int xdiff = current_cursor_position.x - last_cursor_position.x;
-                        int ydiff = current_cursor_position.y - last_cursor_position.y;
-
+                        if (!m_frames_to_framedwindows.count(window))
+                        {
+                            fprintf(stderr, "ERR: The frame is not a frame. How did we get here?!\n");
+                            break;
+                        }
                         auto framed_window = m_frames_to_framedwindows[window];
 
                         ZWM::Position new_pos = framed_window->pos();
