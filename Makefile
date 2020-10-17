@@ -3,7 +3,7 @@ SOURCES = src/main.cpp          \
 		  src/WindowManager.cpp \
 
 build/zwm: $(SOURCES) src/*.h
-	g++ -lX11 $(SOURCES) -o build/zwm
+	g++ -O3 -lX11 $(SOURCES) -o build/zwm
 
 build/zwm.dbg: $(SOURCES) src/*.h
 	g++ -ggdb -g3 -lX11 $(SOURCES) -o build/zwm.dbg
