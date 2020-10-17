@@ -108,26 +108,19 @@ namespace ZWM
             {
             case ButtonPress:
             {
-                // TODO: Cleanup, this could be made waaaay nicer…
-                if (event.xbutton.subwindow) // clicked on a window
+                if (event.xbutton.subwindow || event.xbutton.window != event.xbutton.root) // clicked on a window or a window's frame
                 {
-                    auto window = event.xbutton.subwindow;
+                    Window window;
+                    if (event.xbutton.subwindow)
+                        window = event.xbutton.subwindow;
+                    else
+                        window = event.xbutton.window;
                     XGetWindowAttributes(m_display, window, &attr);
                     last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
 
                     XRaiseWindow(m_display, window);
                     XSetInputFocus(m_display, window, RevertToParent, CurrentTime);
                 }
-                if (event.xbutton.window != event.xbutton.root) // Clicked on a window's frame
-                {
-                    auto window = event.xbutton.window;
-                    XGetWindowAttributes(m_display, window, &attr);
-                    last_cursor_position = {event.xbutton.x_root, event.xbutton.y_root};
-
-                    XRaiseWindow(m_display, window);
-                    XSetInputFocus(m_display, window, RevertToParent, CurrentTime);
-                }
-
                 break;
             }
 
