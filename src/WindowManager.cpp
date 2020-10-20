@@ -141,8 +141,8 @@ namespace ZWM
                     }
 
                     auto framed_window = m_frames_to_framedwindows[window];
-                    if (event.xbutton.state & Mod1Mask) // If ALT is pressed
-                    {                                   // We handle keybinding for position-agnostic actions
+                    if (event.xbutton.state & Mod1Mask | Mod2Mask) // If ALT is pressed
+                    {                                              // We handle keybinding for position-agnostic actions
 
                         if (event.xbutton.state & Button1Mask) // left click; move
                         {
