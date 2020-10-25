@@ -21,6 +21,7 @@ namespace ZWM
 
         Display *m_display;
         std::unordered_map<Window, ZWM::FramedWindow*> m_frames_to_framedwindows;
+        std::unordered_map<std::string, Atom> m_atoms;
 
     public:
         static WindowManager *the();
@@ -31,6 +32,7 @@ namespace ZWM
 
         // Initializes the WM. Returns 0 if successful.
         int init();
+        void init_atoms();
         void run_loop();
         ~WindowManager();
     };

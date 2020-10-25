@@ -45,6 +45,24 @@ namespace ZWM
 		return m_default_font;
 	}
 
+	void WindowManager::init_atoms() {
+		#define REGISTER_ATOM(atom) m_atoms[atom] = XInternAtom(m_display, atom, false);
+		REGISTER_ATOM("UTF8_STRING");
+		REGISTER_ATOM("WM_PROTOCOLS");
+		REGISTER_ATOM("WM_DELETE_WINDOW");
+		REGISTER_ATOM("WM_STATE");
+		REGISTER_ATOM("WM_TAKE_FOCUS");
+		REGISTER_ATOM("_NET_ACTIVE_WINDOW");
+		REGISTER_ATOM("_NET_SUPPORTED");
+		REGISTER_ATOM("_NET_WM_NAME");
+		REGISTER_ATOM("_NET_WM_STATE");
+		REGISTER_ATOM("_NET_SUPPORTING_WM_CHECK");
+		REGISTER_ATOM("_NET_WM_STATE_FULLSCREEN");
+		REGISTER_ATOM("_NET_WM_WINDOW_TYPE");
+		REGISTER_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
+		REGISTER_ATOM("_NET_CLIENT_LIST");
+	}
+
 	int WindowManager::init()
 	{
 		if (!(m_display = XOpenDisplay(0)))
