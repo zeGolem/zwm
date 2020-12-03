@@ -45,8 +45,9 @@ namespace ZWM
 		return m_default_font;
 	}
 
-	void WindowManager::init_atoms() {
-		#define REGISTER_ATOM(atom) m_atoms[atom] = XInternAtom(m_display, atom, false);
+	void WindowManager::init_atoms()
+	{
+#define REGISTER_ATOM(atom) m_atoms[atom] = XInternAtom(m_display, atom, false);
 		REGISTER_ATOM("UTF8_STRING");
 		REGISTER_ATOM("WM_PROTOCOLS");
 		REGISTER_ATOM("WM_DELETE_WINDOW");
@@ -61,6 +62,7 @@ namespace ZWM
 		REGISTER_ATOM("_NET_WM_WINDOW_TYPE");
 		REGISTER_ATOM("_NET_WM_WINDOW_TYPE_DIALOG");
 		REGISTER_ATOM("_NET_CLIENT_LIST");
+#undef REGISTER_ATOM
 	}
 
 	int WindowManager::init()
@@ -160,7 +162,7 @@ namespace ZWM
 
 					auto framed_window = m_frames_to_framedwindows[window];
 					if (event.xbutton.state & Mod1Mask | Mod2Mask) // If ALT is pressed
-					{                                              // We handle keybinding for position-agnostic actions
+					{											   // We handle keybinding for position-agnostic actions
 
 						if (event.xbutton.state & Button1Mask) // left click; move
 						{
@@ -210,9 +212,9 @@ namespace ZWM
 			case MapRequest:
 			{
 				Window event_window = event.xmaprequest.window;
-				XMapWindow(m_display, event_window);                                  // Actually map the window
+				XMapWindow(m_display, event_window);								  // Actually map the window
 				auto *framed_window = new ZWM::FramedWindow(m_display, event_window); // Create a frame for the window
-				m_frames_to_framedwindows[framed_window->frame()] = framed_window;    // save it
+				m_frames_to_framedwindows[framed_window->frame()] = framed_window;	  // save it
 				break;
 			}
 
@@ -226,7 +228,7 @@ namespace ZWM
 					// And it works…
 					// The `event` property isn't even documented in the man page, I have no idea what this does, but it prevents
 					// windows that shouldn't be unmapped from being unmapped, so it works I guess
-					fprintf(stderr, "Ignoring unmap notification for xwindow 0x%x\n", event_window);
+					fprintf(stderr, "Ignoring unmap notification for xwindow 0x%lx\n", event_window);
 					break;
 				}
 
