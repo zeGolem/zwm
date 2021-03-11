@@ -1,14 +1,14 @@
 #pragma once
-#include <X11/Xlib.h>
 #include <string>
+#include <xcb/xcb.h>
+#include <xcb/xproto.h>
 
-typedef Window Frame;
 
 namespace ZWM
 {
 	struct Position
 	{
-		int x, y;
+		unsigned int x, y;
 		auto operator+=(const Position &rhs)
 		{
 			this->x += rhs.x;
@@ -28,7 +28,7 @@ namespace ZWM
 
 	struct Size
 	{
-		int width, height;
+		unsigned int width, height;
 		Size &operator+=(const Size &rhs)
 		{
 			this->width += rhs.width;
@@ -56,11 +56,13 @@ namespace ZWM
 
 		static const unsigned int TOPBAR_HEIGHT = 15;
 
-		Window m_window;
-		Frame m_frame;
+		xcb_connection_t *m_connection;
+		xcb_screen_t *m_screen;
+
+		xcb_window_t m_window;
+		xcb_window_t m_frame;
 		Position m_pos;
 		Size m_size;
-		Display *m_disp;
 		std::string m_title;
 
 		bool m_has_top_bar;
@@ -70,7 +72,14 @@ namespace ZWM
 
 	public:
 		FramedWindow();
-		FramedWindow(Display *, Window framed_window, bool has_top_bar = true);
+		// FramedWindow(Display *, Window framed_window, bool has_top_bar = true);
+		FramedWindow(
+				xcb_connection_t *,
+				xcb_screen_t *,
+				xcb_window_t framed_window,
+				xcb_get_window_attributes_reply_t *,
+				bool has_top_bar = true
+			);
 		~FramedWindow();
 
 		void move(const Position);
@@ -79,8 +88,8 @@ namespace ZWM
 		void set_title(const std::string);
 		void redraw_title();
 
-		Window framed_window() const { return m_window; }
-		Frame frame() const { return m_frame; }
+		xcb_window_t framed_window() const { return m_window; }
+		xcb_window_t frame() const { return m_frame; }
 		Position pos() const { return m_pos; }
 		Size size() const { return m_size; }
 		bool has_top_bar() const { return m_has_top_bar; }

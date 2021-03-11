@@ -1,7 +1,11 @@
 #include "WindowManager.h"
+#include "FramedWindow.h"
 
+#include <bits/stdint-uintn.h>
 #include <stdio.h>
-#include <X11/cursorfont.h>
+#include <xcb/xcb.h>
+#include <xcb/xproto.h>
+#include <xcb/xcb_cursor.h>
 
 namespace ZWM
 {
@@ -14,7 +18,7 @@ namespace ZWM
 		return m_instance;
 	}
 
-	Window WindowManager::find_frame_for_xwindow(Window w)
+	xcb_window_t WindowManager::find_frame_for_xwindow(xcb_window_t w)
 	{
 		for (auto value : m_frames_to_framedwindows)
 		{
@@ -24,6 +28,7 @@ namespace ZWM
 		return 0;
 	}
 
+	/*
 	ulong WindowManager::black_pixel()
 	{
 		if (!m_black_pixel)
@@ -64,28 +69,57 @@ namespace ZWM
 		REGISTER_ATOM("_NET_CLIENT_LIST");
 #undef REGISTER_ATOM
 	}
+	*/
 
 	int WindowManager::init()
 	{
+		m_connection = xcb_connect(NULL, NULL);
+		m_screen = xcb_setup_roots_iterator(xcb_get_setup(m_connection)).data;
+		
+		// https://github.com/mchackorg/mcwm/blob/master/mcwm.c
+		/*
 		if (!(m_display = XOpenDisplay(0)))
 		{
 			fprintf(stderr, "Failed to open display!\n");
 			return 1;
 		}
+		*/
+		xcb_grab_button(m_connection, true, m_screen->root, 
+				XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE, 
+				XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, XCB_NONE, XCB_BUTTON_INDEX_1 | XCB_BUTTON_INDEX_3,
+				XCB_MOD_MASK_ANY);
 
+		/*
 		XGrabButton(m_display, Button1Mask | Button3Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
 					ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
+		*/
+		
+		uint32_t values[2];
+		values[0] = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
 		// To get maprequest events
-		XSelectInput(
-			m_display,
-			DefaultRootWindow(m_display),
-			SubstructureRedirectMask | SubstructureNotifyMask);
+		auto cookie = xcb_change_window_attributes_checked(m_connection, m_screen->root, XCB_CW_EVENT_MASK, values);
+		auto error = xcb_request_check(m_connection, cookie);
 
-		XSync(m_display, false);
+		xcb_flush(m_connection);
+
+		if (error) {
+			fprintf(stderr, "zwm: Can't get substructure redirect. Is another WM running?\nError code: %d\n", error->error_code);
+			xcb_disconnect(m_connection);
+			return -1;
+		}
+
+		// XSelectInput(
+		// 	m_display,
+		// 	DefaultRootWindow(m_display),
+		// 	SubstructureRedirectMask | SubstructureNotifyMask);
+
+		// XSync(m_display, false);
 
 		// Get existing windows to frame them
+		reparent_existing_windows();
 
+		/*
 		XGrabServer(m_display);
 		Window tree_root, tree_parent;
 		Window *existing_windows;
@@ -103,9 +137,48 @@ namespace ZWM
 
 		XFree(existing_windows);
 		XUngrabServer(m_display);
+		*/
+
+		xcb_cursor_context_t *ctx;
+		if (xcb_cursor_context_new(m_connection, m_screen, &ctx) >= 0) {
+			auto cursor = xcb_cursor_load_cursor(ctx, "default");
+			xcb_cursor_context_free(ctx);
+		}
+		
+		/*
 		auto default_cursor = XCreateFontCursor(m_display, XC_arrow);
 		XDefineCursor(m_display, DefaultRootWindow(m_display), default_cursor);
+		*/
 		return 0;
+	}
+
+	void WindowManager::reparent_existing_windows() {
+		// Get window tree
+		auto tree = xcb_query_tree(m_connection, m_screen->root);
+		auto *tree_reply = xcb_query_tree_reply(m_connection, tree, 0);
+
+		if (!tree_reply) {
+			return;
+		}
+
+		auto len = xcb_query_tree_children_length(tree_reply);
+		xcb_window_t *children = xcb_query_tree_children(tree_reply);
+
+		for (int i = 0; i < len; i++) {
+			auto attributes = xcb_get_window_attributes(m_connection, children[i]);
+			auto *attributes_reply = xcb_get_window_attributes_reply(m_connection, attributes, 0);
+
+			if (!attributes_reply) {
+				fprintf(stderr, "Couldn't get attributes fow window 0x%x\n", children[i]);
+				continue;
+			}
+
+			// Ignore window that shouldn't be reported to us, or that are invisible.
+			if (!attributes_reply->override_redirect && attributes_reply->map_state == XCB_MAP_STATE_VIEWABLE) {
+				auto *framed_window = new ZWM::FramedWindow(m_connection, m_screen, children[i], attributes_reply, true);
+				m_frames_to_framedwindows[framed_window->frame()] = framed_window;
+			}
+		}
 	}
 
 	void WindowManager::run_loop()
@@ -113,7 +186,7 @@ namespace ZWM
 		// Loop initialization
 
 		ZWM::Position last_cursor_position{};
-		XEvent event;
+		xcb_generic_event_t *event;
 
 		fprintf(stdout, "ZWM initialized! Starting event loop\n");
 
@@ -121,12 +194,19 @@ namespace ZWM
 
 		while (true)
 		{
-			XNextEvent(m_display, &event);
+			event = xcb_poll_for_event(m_connection);
 
-			switch (event.type)
+			fprintf(stdout, "got an event.\n");
+
+			switch (event->response_type)
 			{
-			case ButtonPress:
+			case XCB_BUTTON_PRESS:
 			{
+				auto e = (xcb_button_press_event_t *) event;
+				fprintf(stdout, "Button press event\n");
+				// TODO: Reimplement button press.
+
+				/*
 				if (event.xbutton.subwindow || event.xbutton.window != event.xbutton.root) // clicked on a window or a window's frame
 				{
 					Window window;
@@ -140,11 +220,17 @@ namespace ZWM
 					XRaiseWindow(m_display, window);
 					XSetInputFocus(m_display, window, RevertToParent, CurrentTime);
 				}
+				*/
 				break;
 			}
 
-			case MotionNotify:
+			case XCB_MOTION_NOTIFY:
 			{
+				auto e = (xcb_motion_notify_event_t *) event;
+				fprintf(stdout, "Motion notify event\n");
+				// TODO: Reimplement motion notify.
+				
+				/*
 				ZWM::Position current_cursor_position{event.xbutton.x_root, event.xbutton.y_root};
 				int xdiff = current_cursor_position.x - last_cursor_position.x;
 				int ydiff = current_cursor_position.y - last_cursor_position.y;
@@ -200,26 +286,42 @@ namespace ZWM
 				}
 
 				last_cursor_position = current_cursor_position;
+				*/
 				break;
 			}
 
-			case ButtonRelease:
+			case XCB_BUTTON_RELEASE:
 			{
-				last_cursor_position = ZWM::Position{};
+				auto e = (xcb_button_release_event_t *) event;
+				fprintf(stdout, "Button release event\n");
+				// TODO: Reimplement button release.
+
+				// last_cursor_position = ZWM::Position{};
 				break;
 			}
 
-			case MapRequest:
+			case XCB_MAP_REQUEST:
 			{
+				auto e = (xcb_map_request_event_t *) event;
+				fprintf(stdout, "Map request event\n");
+				// TODO: Reimplement map request.
+
+				/*
 				Window event_window = event.xmaprequest.window;
 				XMapWindow(m_display, event_window);								  // Actually map the window
 				auto *framed_window = new ZWM::FramedWindow(m_display, event_window); // Create a frame for the window
 				m_frames_to_framedwindows[framed_window->frame()] = framed_window;	  // save it
+				*/
 				break;
 			}
 
-			case UnmapNotify:
+			case XCB_UNMAP_NOTIFY:
 			{
+				auto e = (xcb_unmap_notify_event_t *) event;
+				fprintf(stdout, "Unmap notify event\n");
+				// TODO: Reimplement unmap notify.
+
+				/*
 				auto event_window = event.xunmap.window;
 				if (event.xunmap.event == DefaultRootWindow(m_display))
 				{
@@ -240,11 +342,17 @@ namespace ZWM
 				}
 
 				delete m_frames_to_framedwindows[frame];
+				*/
 				break;
 			}
 
-			case ConfigureRequest:
+			case XCB_CONFIGURE_REQUEST:
 			{
+				auto e = (xcb_configure_request_event_t *) event;
+				fprintf(stdout, "Configure request event\n");
+				// TODO: Reimplement configure request.
+
+				/*
 				auto config_request = event.xconfigurerequest;
 				auto window = config_request.window;
 				XWindowChanges changes{};
@@ -268,19 +376,22 @@ namespace ZWM
 				}
 
 				XConfigureWindow(m_display, window, config_request.value_mask, &changes);
+				*/
 				break;
 			}
 
 			// Events to ignore.
+			/*
 			case CreateNotify:
 			case DestroyNotify:
 			case ConfigureNotify:
 			case MapNotify:
 			case ReparentNotify:
 				break;
+				*/
 
 			default:
-				fprintf(stdout, "Unhandled event %d\n", event.type);
+				fprintf(stdout, "Unhandled event %d\n", event->response_type);
 				break;
 			}
 		}
