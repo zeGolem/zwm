@@ -3,10 +3,10 @@ SOURCES = src/main.cpp          \
 		  src/WindowManager.cpp \
 
 build/zwm: $(SOURCES) src/*.h
-	g++ -O3 -lxcb -lxcb-cursor $(SOURCES) -o build/zwm
+	g++ -O3 -lxcb -lxcb-cursor -std=c++20 $(SOURCES) -o build/zwm
 
 build/zwm.dbg: $(SOURCES) src/*.h
-	g++ -ggdb -g3 -lxcb -lxcb-cursor $(SOURCES) -o build/zwm.dbg
+	g++ -ggdb -g3 -lxcb -lxcb-cursor -std=c++20 $(SOURCES) -o build/zwm.dbg
  
 
 
