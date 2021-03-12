@@ -46,6 +46,7 @@ class FramedWindow
 
 	xcb_window_t m_window;
 	xcb_window_t m_frame;
+
 	Position m_pos;
 	Size m_size;
 	std::string m_title;
@@ -70,6 +71,7 @@ class FramedWindow
 
 	void set_title(const std::string);
 	void redraw_title();
+	void draw();
 
 	xcb_window_t framed_window() const { return m_window; }
 	xcb_window_t frame() const { return m_frame; }

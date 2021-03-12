@@ -28,19 +28,27 @@ FramedWindow::FramedWindow(xcb_connection_t *conn,
 
 	// Create frame
 	xcb_window_t frame_id = xcb_generate_id(m_connection);
-	xcb_create_window_checked(m_connection,
-	                          XCB_COPY_FROM_PARENT,
-	                          frame_id,
-	                          m_screen->root,
-	                          m_pos.x,
-	                          m_pos.y,
-	                          m_size.width,
-	                          m_size.height,
-	                          BORDER_WIDTH,
-	                          XCB_WINDOW_CLASS_INPUT_OUTPUT,
-	                          m_screen->root_visual,
-	                          0,
-	                          NULL);
+	{
+		// Register events
+		auto mask = XCB_CW_EVENT_MASK;
+		// Events we want to get from the frame
+		uint32_t values[] = {XCB_EVENT_MASK_EXPOSURE};
+
+		// Creates the frame's window.
+		xcb_create_window_checked(m_connection,
+		                          XCB_COPY_FROM_PARENT,
+		                          frame_id,
+		                          m_screen->root,
+		                          m_pos.x,
+		                          m_pos.y,
+		                          m_size.width,
+		                          m_size.height,
+		                          0,
+		                          XCB_WINDOW_CLASS_INPUT_OUTPUT,
+		                          m_screen->root_visual,
+		                          mask,
+		                          values);
+	}
 
 	xcb_map_window(m_connection, frame_id);
 	xcb_flush(m_connection);
@@ -53,7 +61,8 @@ FramedWindow::FramedWindow(xcb_connection_t *conn,
 	// Recieve events from the window
 	{
 		uint32_t values[2];
-		values[0] = XCB_EVENT_MASK_ENTER_WINDOW;
+		// Events we want to receive
+		values[0] = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_EXPOSURE;
 		xcb_change_window_attributes_checked(m_connection, m_window, XCB_CW_EVENT_MASK, values);
 	}
 
@@ -139,5 +148,23 @@ void FramedWindow::set_title(std::string new_title)
 void FramedWindow::redraw_title()
 {
 	draw_text(m_title, {5, TOPBAR_HEIGHT - 5});
+}
+
+void FramedWindow::draw()
+{
+	// Create foreground GC
+	xcb_gcontext_t foreground_gc;
+	{
+		uint32_t mask = XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
+		uint32_t values[] = {
+		    m_screen->black_pixel,
+		    0,
+		};
+		xcb_create_gc(m_connection, foreground_gc, m_window, mask, values);
+	}
+
+	// Draw background rectangle
+	xcb_rectangle_t rect = {0, 0, static_cast<uint16_t>(size().width), static_cast<uint16_t>(size().height)};
+	xcb_poly_rectangle(m_connection, m_frame, foreground_gc, 1, &rect);
 }
 } // namespace ZWM

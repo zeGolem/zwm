@@ -371,6 +371,17 @@ void WindowManager::run_loop()
 			case ReparentNotify:
 			    break;
 			    */
+		case XCB_EXPOSE: {
+			// When a window is exposed
+			// (we want to draw it)
+			auto e = (xcb_expose_event_t *)event;
+
+			if (!m_frames_to_framedwindows.contains(e->window)) continue; // If the window is not a frame, we ignore it.
+			auto framed_window = m_frames_to_framedwindows[e->window];
+
+			// We draw the frame
+			framed_window->draw();
+		}
 
 		default:
 			fprintf(stdout, "Unhandled event %d\n", event->response_type);
