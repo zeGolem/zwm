@@ -1,0 +1,4 @@
+BasedOnStyle: Microsoft
+
+UseTab: ForIndentation
+BreakBeforeBraces: Linux
