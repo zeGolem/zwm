@@ -14,16 +14,14 @@ WindowManager *WindowManager::m_instance = nullptr;
 
 WindowManager *WindowManager::the()
 {
-	if (!m_instance)
-		m_instance = new WindowManager();
+	if (!m_instance) m_instance = new WindowManager();
 	return m_instance;
 }
 
 xcb_window_t WindowManager::find_frame_for_xwindow(xcb_window_t w)
 {
 	for (auto value : m_frames_to_framedwindows) {
-		if (value.second->framed_window() == w)
-			return value.first;
+		if (value.second->framed_window() == w) return value.first;
 	}
 	return 0;
 }
@@ -76,81 +74,50 @@ int WindowManager::init()
 	m_connection = xcb_connect(NULL, NULL);
 	m_screen = xcb_setup_roots_iterator(xcb_get_setup(m_connection)).data;
 
-	// https://github.com/mchackorg/mcwm/blob/master/mcwm.c
-	/*
-	if (!(m_display = XOpenDisplay(0)))
-	{
-	    fprintf(stderr, "Failed to open display!\n");
-	    return 1;
-	}
-	*/
-	xcb_grab_button(m_connection, true, m_screen->root,
+	// XCB Exmaple from which most of my code is based : https://github.com/mchackorg/mcwm/blob/master/mcwm.c
+
+	xcb_grab_button(m_connection,
+	                true,
+	                m_screen->root,
 	                XCB_EVENT_MASK_BUTTON_MOTION | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE,
-	                XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC, XCB_NONE, XCB_NONE,
-	                XCB_BUTTON_INDEX_1 | XCB_BUTTON_INDEX_3, XCB_MOD_MASK_ANY);
+	                XCB_GRAB_MODE_ASYNC,
+	                XCB_GRAB_MODE_ASYNC,
+	                XCB_NONE,
+	                XCB_NONE,
+	                XCB_BUTTON_INDEX_1 | XCB_BUTTON_INDEX_3,
+	                XCB_MOD_MASK_ANY);
 
-	/*
-	XGrabButton(m_display, Button1Mask | Button3Mask, Mod1Mask | Mod2Mask, DefaultRootWindow(m_display), True,
-	            ButtonPressMask | ButtonReleaseMask | PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None);
-	*/
+	// Get events
+	{
+		uint32_t values[2];
+		values[0] =
+		    XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
-	uint32_t values[2];
-	values[0] =
-	    XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+		// To get maprequest events
+		auto cookie = xcb_change_window_attributes_checked(m_connection, m_screen->root, XCB_CW_EVENT_MASK, values);
+		auto error = xcb_request_check(m_connection, cookie);
 
-	// To get maprequest events
-	auto cookie = xcb_change_window_attributes_checked(m_connection, m_screen->root, XCB_CW_EVENT_MASK, values);
-	auto error = xcb_request_check(m_connection, cookie);
+		xcb_flush(m_connection);
 
-	xcb_flush(m_connection);
-
-	if (error) {
-		fprintf(stderr, "zwm: Can't get substructure redirect. Is another WM running?\nError code: %d\n",
-		        error->error_code);
-		xcb_disconnect(m_connection);
-		return -1;
+		if (error) {
+			fprintf(stderr,
+			        "zwm: Can't get substructure redirect. Is another WM running?\nError code: %d\n",
+			        error->error_code);
+			xcb_disconnect(m_connection);
+			return -1;
+		}
 	}
-
-	// XSelectInput(
-	// 	m_display,
-	// 	DefaultRootWindow(m_display),
-	// 	SubstructureRedirectMask | SubstructureNotifyMask);
-
-	// XSync(m_display, false);
 
 	// Get existing windows to frame them
 	reparent_existing_windows();
 
-	/*
-	XGrabServer(m_display);
-	Window tree_root, tree_parent;
-	Window *existing_windows;
-	unsigned int existing_windows_size;
-
-	XQueryTree(m_display, DefaultRootWindow(m_display),
-	           &tree_root, &tree_parent,
-	           &existing_windows, &existing_windows_size);
-
-	for (size_t i = 0; i < existing_windows_size; i++)
-	{
-	    auto *framed_window = new ZWM::FramedWindow(m_display, existing_windows[i]);
-	    m_frames_to_framedwindows[framed_window->frame()] = framed_window;
-	}
-
-	XFree(existing_windows);
-	XUngrabServer(m_display);
-	*/
-
+	// Set cursor
 	xcb_cursor_context_t *ctx;
 	if (xcb_cursor_context_new(m_connection, m_screen, &ctx) >= 0) {
 		auto cursor = xcb_cursor_load_cursor(ctx, "default");
 		xcb_cursor_context_free(ctx);
 	}
 
-	/*
-	auto default_cursor = XCreateFontCursor(m_display, XC_arrow);
-	XDefineCursor(m_display, DefaultRootWindow(m_display), default_cursor);
-	*/
 	return 0;
 }
 

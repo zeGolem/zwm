@@ -12,9 +12,7 @@ class WindowManager
 {
   private:
 	static WindowManager *m_instance;
-	WindowManager()
-	{
-	}
+	WindowManager() {}
 
 	xcb_window_t find_frame_for_xwindow(xcb_window_t w);
 

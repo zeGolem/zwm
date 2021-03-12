@@ -19,8 +19,7 @@ int main(int argc, const char **argv)
 
 	// XSetErrorHandler(x_error_handler);
 
-	if (ZWM::WindowManager::the()->init() != 0)
-		return -1;
+	if (ZWM::WindowManager::the()->init() != 0) return -1;
 	ZWM::WindowManager::the()->run_loop();
 	return 0;
 }

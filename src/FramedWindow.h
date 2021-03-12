@@ -14,14 +14,8 @@ struct Position {
 		return *this;
 	}
 
-	auto operator==(const Position &rhs)
-	{
-		return this->x == rhs.x && this->y == rhs.y;
-	}
-	auto operator!=(const Position &rhs)
-	{
-		return !(*this == rhs);
-	}
+	auto operator==(const Position &rhs) { return this->x == rhs.x && this->y == rhs.y; }
+	auto operator!=(const Position &rhs) { return !(*this == rhs); }
 };
 
 struct Size {
@@ -33,14 +27,8 @@ struct Size {
 		return *this;
 	}
 
-	auto operator==(const Size &rhs)
-	{
-		return this->width == rhs.width && this->height == rhs.height;
-	}
-	auto operator!=(const Size &rhs)
-	{
-		return !(*this == rhs);
-	}
+	auto operator==(const Size &rhs) { return this->width == rhs.width && this->height == rhs.height; }
+	auto operator!=(const Size &rhs) { return !(*this == rhs); }
 };
 
 class FramedWindow
@@ -70,7 +58,10 @@ class FramedWindow
   public:
 	FramedWindow();
 	// FramedWindow(Display *, Window framed_window, bool has_top_bar = true);
-	FramedWindow(xcb_connection_t *, xcb_screen_t *, xcb_window_t framed_window, xcb_get_window_attributes_reply_t *,
+	FramedWindow(xcb_connection_t *,
+	             xcb_screen_t *,
+	             xcb_window_t framed_window,
+	             xcb_get_window_attributes_reply_t *,
 	             bool has_top_bar = true);
 	~FramedWindow();
 
@@ -80,33 +71,12 @@ class FramedWindow
 	void set_title(const std::string);
 	void redraw_title();
 
-	xcb_window_t framed_window() const
-	{
-		return m_window;
-	}
-	xcb_window_t frame() const
-	{
-		return m_frame;
-	}
-	Position pos() const
-	{
-		return m_pos;
-	}
-	Size size() const
-	{
-		return m_size;
-	}
-	bool has_top_bar() const
-	{
-		return m_has_top_bar;
-	}
-	unsigned int top_bar_size() const
-	{
-		return m_has_top_bar ? TOPBAR_HEIGHT : 0;
-	}
-	std::string title() const
-	{
-		return m_title;
-	}
+	xcb_window_t framed_window() const { return m_window; }
+	xcb_window_t frame() const { return m_frame; }
+	Position pos() const { return m_pos; }
+	Size size() const { return m_size; }
+	bool has_top_bar() const { return m_has_top_bar; }
+	unsigned int top_bar_size() const { return m_has_top_bar ? TOPBAR_HEIGHT : 0; }
+	std::string title() const { return m_title; }
 };
 } // namespace ZWM

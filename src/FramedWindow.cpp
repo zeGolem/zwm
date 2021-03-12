@@ -14,8 +14,11 @@ FramedWindow::FramedWindow()
 	fprintf(stderr, "ERR: Trying to initialize a FramedWindow with no window. This won't work!\n");
 }
 
-FramedWindow::FramedWindow(xcb_connection_t *conn, xcb_screen_t *screen, xcb_window_t window,
-                           xcb_get_window_attributes_reply_t *attributes, bool top_bar)
+FramedWindow::FramedWindow(xcb_connection_t *conn,
+                           xcb_screen_t *screen,
+                           xcb_window_t window,
+                           xcb_get_window_attributes_reply_t *attributes,
+                           bool top_bar)
     : m_screen(screen), m_window(window), m_connection(conn), m_has_top_bar(top_bar)
 {
 	// Get window geometry
@@ -25,9 +28,19 @@ FramedWindow::FramedWindow(xcb_connection_t *conn, xcb_screen_t *screen, xcb_win
 
 	// Create frame
 	xcb_window_t frame_id = xcb_generate_id(m_connection);
-	xcb_create_window_checked(m_connection, XCB_COPY_FROM_PARENT, frame_id, m_screen->root, m_pos.x, m_pos.y,
-	                          m_size.width, m_size.height, BORDER_WIDTH, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-	                          m_screen->root_visual, 0, NULL);
+	xcb_create_window_checked(m_connection,
+	                          XCB_COPY_FROM_PARENT,
+	                          frame_id,
+	                          m_screen->root,
+	                          m_pos.x,
+	                          m_pos.y,
+	                          m_size.width,
+	                          m_size.height,
+	                          BORDER_WIDTH,
+	                          XCB_WINDOW_CLASS_INPUT_OUTPUT,
+	                          m_screen->root_visual,
+	                          0,
+	                          NULL);
 
 	xcb_map_window(m_connection, frame_id);
 	xcb_flush(m_connection);
@@ -50,50 +63,9 @@ FramedWindow::FramedWindow(xcb_connection_t *conn, xcb_screen_t *screen, xcb_win
 
 	set_title("TODO: Add title support");
 	// TODO: Add title support
+	// TODO: Draw to the frame window: https://xcb.freedesktop.org/tutorial/basicwindowsanddrawing/
 }
-/*
-    FramedWindow::FramedWindow(Display *disp, Window window, bool has_top_bar)
-        : m_window(window), m_disp(disp), m_has_top_bar(has_top_bar)
-    {
-        fprintf(stdout, "Creating FramedWindow for xwindow %x\n", window);
 
-        XWindowAttributes attrs;
-        if (!XGetWindowAttributes(disp, window, &attrs))
-        {
-            fprintf(stderr, "Could not get window attributes for %x\n", window);
-            return;
-        }
-
-        if (attrs.override_redirect || attrs.map_state == IsUnviewable || attrs.map_state == IsUnmapped)
-        {
-            fprintf(stdout, "Skipping framing on window %x because it's invisible\n", window);
-            return;
-        }
-
-        Frame frame = XCreateSimpleWindow(disp, DefaultRootWindow(disp),
-                                          attrs.x, attrs.y, attrs.width, attrs.height + TOPBAR_HEIGHT,
-                                          BORDER_WIDTH, BORDER_COLOR, BG_COLOR);
-
-        // Get events from the frame
-        XSelectInput(disp, frame, SubstructureNotifyMask | SubstructureRedirectMask | ButtonPressMask |
-   ButtonMotionMask);
-
-        XAddToSaveSet(disp, window);
-        XReparentWindow(disp, window, frame, 0, 0 + TOPBAR_HEIGHT);
-        XMapWindow(disp, frame);
-
-        m_frame = frame;
-        m_pos = {attrs.x, attrs.y};
-        m_size = {attrs.width, attrs.height};
-
-        char *window_name;
-        XFetchName(m_disp, window, &window_name);
-        if (window_name)
-            set_title(std::string(window_name));
-
-        fprintf(stdout, "Created frame for xwindow 0x%x with name '%s'\n", window, window_name);
-    }
-*/
 FramedWindow::~FramedWindow()
 {
 	fprintf(stdout, "Destroying framed window (xwindow=0x%x)\n", m_window);
@@ -115,8 +87,7 @@ void FramedWindow::move(Position new_pos)
 
 void FramedWindow::resize(Size new_size)
 {
-	if (new_size.width < 1 || new_size.height - TOPBAR_HEIGHT < 1)
-		return;
+	if (new_size.width < 1 || new_size.height - TOPBAR_HEIGHT < 1) return;
 
 	const static uint32_t frame_size[]{new_size.width, new_size.height};
 	xcb_configure_window(m_connection, m_frame, XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, frame_size);
