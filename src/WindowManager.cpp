@@ -2,6 +2,7 @@
 #include "FramedWindow.h"
 
 #include <bits/stdint-uintn.h>
+#include <cstdlib>
 #include <stdio.h>
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
@@ -153,6 +154,7 @@ namespace ZWM
 	}
 
 	void WindowManager::reparent_existing_windows() {
+		fprintf(stdout, "Reparenting windows\n");
 		// Get window tree
 		auto tree = xcb_query_tree(m_connection, m_screen->root);
 		auto *tree_reply = xcb_query_tree_reply(m_connection, tree, 0);
@@ -163,6 +165,7 @@ namespace ZWM
 
 		auto len = xcb_query_tree_children_length(tree_reply);
 		xcb_window_t *children = xcb_query_tree_children(tree_reply);
+		fprintf(stdout, "Found %d children\n", len);
 
 		for (int i = 0; i < len; i++) {
 			auto attributes = xcb_get_window_attributes(m_connection, children[i]);
@@ -175,6 +178,7 @@ namespace ZWM
 
 			// Ignore window that shouldn't be reported to us, or that are invisible.
 			if (!attributes_reply->override_redirect && attributes_reply->map_state == XCB_MAP_STATE_VIEWABLE) {
+				fprintf(stdout, "Framing 0x%x\n", children[i]);
 				auto *framed_window = new ZWM::FramedWindow(m_connection, m_screen, children[i], attributes_reply, true);
 				m_frames_to_framedwindows[framed_window->frame()] = framed_window;
 			}
@@ -194,9 +198,17 @@ namespace ZWM
 
 		while (true)
 		{
-			event = xcb_poll_for_event(m_connection);
+			// TODO: Use xcb_poll_for_event(conn);
+			event = xcb_wait_for_event(m_connection);
 
-			fprintf(stdout, "got an event.\n");
+			if (!event) {
+				fprintf(stderr, "Event error!\n");
+				if (xcb_connection_has_error(m_connection)) {
+					fprintf(stderr, "Connection error, I give up\n");
+					exit(-1);
+				}
+				continue;
+			}
 
 			switch (event->response_type)
 			{
