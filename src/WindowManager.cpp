@@ -112,10 +112,16 @@ int WindowManager::init()
 	reparent_existing_windows();
 
 	// Set cursor
-	xcb_cursor_context_t *ctx;
-	if (xcb_cursor_context_new(m_connection, m_screen, &ctx) >= 0) {
-		auto cursor = xcb_cursor_load_cursor(ctx, "default");
-		xcb_cursor_context_free(ctx);
+	{
+		xcb_cursor_context_t *ctx;
+		if (xcb_cursor_context_new(m_connection, m_screen, &ctx) >= 0) {
+			auto cursor = xcb_cursor_load_cursor(ctx, "left_ptr");
+			if (cursor != XCB_CURSOR_NONE) {
+				fprintf(stdout, "Setting root cursor\n");
+				xcb_change_window_attributes(m_connection, m_screen->root, XCB_CW_CURSOR, &cursor);
+			}
+			xcb_cursor_context_free(ctx);
+		}
 	}
 
 	return 0;
