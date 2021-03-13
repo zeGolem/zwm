@@ -47,6 +47,8 @@ class FramedWindow
 	xcb_window_t m_window;
 	xcb_window_t m_frame;
 
+	xcb_pixmap_t m_frame_background;
+
 	Position m_pos;
 	Size m_size;
 	std::string m_title;
@@ -58,7 +60,6 @@ class FramedWindow
 
   public:
 	FramedWindow();
-	// FramedWindow(Display *, Window framed_window, bool has_top_bar = true);
 	FramedWindow(xcb_connection_t *,
 	             xcb_screen_t *,
 	             xcb_window_t framed_window,
@@ -71,7 +72,7 @@ class FramedWindow
 
 	void set_title(const std::string);
 	void redraw_title();
-	void draw();
+	void draw() const;
 
 	xcb_window_t framed_window() const { return m_window; }
 	xcb_window_t frame() const { return m_frame; }

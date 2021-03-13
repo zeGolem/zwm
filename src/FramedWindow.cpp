@@ -26,45 +26,40 @@ FramedWindow::FramedWindow(xcb_connection_t *conn,
 	m_pos = {static_cast<unsigned int>(window_geometry->x), static_cast<unsigned int>(window_geometry->y)};
 	m_size = {window_geometry->width, window_geometry->height};
 
+	// Make background pixmap
+	m_frame_background = xcb_generate_id(m_connection);
+	xcb_create_pixmap(
+	    m_connection, m_screen->root_depth, m_frame_background, m_screen->root, size().width, size().height);
+
 	// Create frame
-	xcb_window_t frame_id = xcb_generate_id(m_connection);
+	m_frame = xcb_generate_id(m_connection);
 	{
 		// Register events
-		auto mask = XCB_CW_EVENT_MASK;
-		// Events we want to get from the frame
-		uint32_t values[] = {XCB_EVENT_MASK_EXPOSURE};
+		auto mask = XCB_CW_BACK_PIXMAP | XCB_CW_EVENT_MASK;
+		// Background pixmap and events we want to get from the frame
+		uint32_t values[] = {m_frame_background, XCB_EVENT_MASK_EXPOSURE};
 
 		// Creates the frame's window.
 		xcb_create_window_checked(m_connection,
 		                          XCB_COPY_FROM_PARENT,
-		                          frame_id,
+		                          m_frame,
 		                          m_screen->root,
 		                          m_pos.x,
 		                          m_pos.y,
-		                          m_size.width,
-		                          m_size.height,
-		                          0,
+		                          size().width,
+		                          size().height,
+		                          BORDER_WIDTH,
 		                          XCB_WINDOW_CLASS_INPUT_OUTPUT,
 		                          m_screen->root_visual,
 		                          mask,
 		                          values);
 	}
 
-	xcb_map_window(m_connection, frame_id);
+	xcb_map_window(m_connection, m_frame);
 	xcb_flush(m_connection);
-
-	m_frame = frame_id;
 
 	// Reparent
 	xcb_reparent_window_checked(m_connection, m_window, m_frame, 0, 0 + TOPBAR_HEIGHT);
-
-	// Recieve events from the window
-	{
-		uint32_t values[2];
-		// Events we want to receive
-		values[0] = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_EXPOSURE;
-		xcb_change_window_attributes_checked(m_connection, m_window, XCB_CW_EVENT_MASK, values);
-	}
 
 	// Save the window so that it's restored if we crash.
 	xcb_change_save_set(m_connection, XCB_SET_MODE_INSERT, m_window);
@@ -150,21 +145,23 @@ void FramedWindow::redraw_title()
 	draw_text(m_title, {5, TOPBAR_HEIGHT - 5});
 }
 
-void FramedWindow::draw()
+void FramedWindow::draw() const
 {
+	fprintf(stdout, "draw\n");
 	// Create foreground GC
-	xcb_gcontext_t foreground_gc;
-	{
-		uint32_t mask = XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
-		uint32_t values[] = {
-		    m_screen->black_pixel,
-		    0,
-		};
-		xcb_create_gc(m_connection, foreground_gc, m_window, mask, values);
-	}
+	xcb_gcontext_t foreground_gc = xcb_generate_id(m_connection);
+	uint32_t mask = XCB_GC_BACKGROUND | XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
+	uint32_t values[] = {
+	    m_screen->white_pixel,
+	    m_screen->white_pixel,
+	    0,
+	};
+	xcb_create_gc(m_connection, foreground_gc, m_frame, mask, values);
 
 	// Draw background rectangle
-	xcb_rectangle_t rect = {0, 0, static_cast<uint16_t>(size().width), static_cast<uint16_t>(size().height)};
-	xcb_poly_rectangle(m_connection, m_frame, foreground_gc, 1, &rect);
+	xcb_rectangle_t rect[] = {{0, 0, static_cast<uint16_t>(size().width), TOPBAR_HEIGHT}};
+	xcb_poly_fill_rectangle(m_connection, m_frame, foreground_gc, 1, rect);
+
+	xcb_flush(m_connection);
 }
 } // namespace ZWM
