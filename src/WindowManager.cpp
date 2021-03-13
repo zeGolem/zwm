@@ -154,7 +154,7 @@ void WindowManager::reparent_existing_windows()
 		// Ignore window that shouldn't be reported to us, or that are invisible.
 		if (!attributes_reply->override_redirect && attributes_reply->map_state == XCB_MAP_STATE_VIEWABLE) {
 			fprintf(stdout, "Framing 0x%x\n", children[i]);
-			auto *framed_window = new ZWM::FramedWindow(m_connection, m_screen, children[i], attributes_reply, true);
+			auto *framed_window = new ZWM::FramedWindow(m_connection, m_screen, children[i], true);
 			m_frames_to_framedwindows[framed_window->frame()] = framed_window;
 		}
 	}

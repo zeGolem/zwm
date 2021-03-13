@@ -17,7 +17,6 @@ FramedWindow::FramedWindow()
 FramedWindow::FramedWindow(xcb_connection_t *conn,
                            xcb_screen_t *screen,
                            xcb_window_t window,
-                           xcb_get_window_attributes_reply_t *attributes,
                            bool top_bar)
     : m_screen(screen), m_window(window), m_connection(conn), m_has_top_bar(top_bar)
 {

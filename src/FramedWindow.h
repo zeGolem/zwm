@@ -63,7 +63,6 @@ class FramedWindow
 	FramedWindow(xcb_connection_t *,
 	             xcb_screen_t *,
 	             xcb_window_t framed_window,
-	             xcb_get_window_attributes_reply_t *,
 	             bool has_top_bar = true);
 	~FramedWindow();
 
