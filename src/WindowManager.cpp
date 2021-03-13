@@ -91,7 +91,7 @@ int WindowManager::init()
 	{
 		uint32_t values[2];
 		values[0] =
-		    XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+		    XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
 		// To get maprequest events
 		auto cookie = xcb_change_window_attributes_checked(m_connection, m_screen->root, XCB_CW_EVENT_MASK, values);
@@ -285,47 +285,22 @@ void WindowManager::run_loop()
 
 		case XCB_MAP_REQUEST: {
 			auto e = (xcb_map_request_event_t *)event;
-			fprintf(stdout, "Map request event\n");
-			// TODO: Reimplement map request.
 
-			/*
-			Window event_window = event.xmaprequest.window;
-			XMapWindow(m_display, event_window);								  // Actually map the window
-			auto *framed_window = new ZWM::FramedWindow(m_display, event_window); // Create a frame for the window
-			m_frames_to_framedwindows[framed_window->frame()] = framed_window;	  // save it
-			*/
+			xcb_map_window(m_connection, e->window);
+			auto *framed_window = new ZWM::FramedWindow(m_connection, m_screen, e->window, false);
+			m_frames_to_framedwindows[framed_window->frame()] = framed_window;
 			break;
 		}
 
 		case XCB_UNMAP_NOTIFY: {
 			auto e = (xcb_unmap_notify_event_t *)event;
-			fprintf(stdout, "Unmap notify event\n");
-			// TODO: Reimplement unmap notify.
 
-			/*
-			auto event_window = event.xunmap.window;
-			if (event.xunmap.event == DefaultRootWindow(m_display))
-			{
-			    // I have no idea why or how this happens, just copy-pasted this from
-			    //
-			https://github.com/jichu4n/basic_wm/blob/75483547ae0ddb7585c28af86b9c957ba6c3302b/window_manager.cpp#L310
-			    // And it works…
-			    // The `event` property isn't even documented in the man page, I have no idea what this does, but it
-			prevents
-			    // windows that shouldn't be unmapped from being unmapped, so it works I guess
-			    fprintf(stderr, "Ignoring unmap notification for xwindow 0x%lx\n", event_window);
-			    break;
+			auto frame = find_frame_for_xwindow(e->window);
+			if (frame) {
+				auto framed_window = m_frames_to_framedwindows[frame];
+				m_frames_to_framedwindows.erase(frame);
+				delete framed_window;
 			}
-
-			auto frame = find_frame_for_xwindow(event_window);
-			if (frame == 0)
-			{
-			    fprintf(stderr, "Unmapping a window that was not framed! Ignoring…\n");
-			    break;
-			}
-
-			delete m_frames_to_framedwindows[frame];
-			*/
 			break;
 		}
 

@@ -14,10 +14,7 @@ FramedWindow::FramedWindow()
 	fprintf(stderr, "ERR: Trying to initialize a FramedWindow with no window. This won't work!\n");
 }
 
-FramedWindow::FramedWindow(xcb_connection_t *conn,
-                           xcb_screen_t *screen,
-                           xcb_window_t window,
-                           bool top_bar)
+FramedWindow::FramedWindow(xcb_connection_t *conn, xcb_screen_t *screen, xcb_window_t window, bool top_bar)
     : m_screen(screen), m_window(window), m_connection(conn), m_has_top_bar(top_bar)
 {
 	// Get window geometry
@@ -36,7 +33,10 @@ FramedWindow::FramedWindow(xcb_connection_t *conn,
 		// Register events
 		auto mask = XCB_CW_BACK_PIXMAP | XCB_CW_EVENT_MASK;
 		// Background pixmap and events we want to get from the frame
-		uint32_t values[] = {m_frame_background, XCB_EVENT_MASK_EXPOSURE};
+		uint32_t values[] = {
+		    m_frame_background,
+		    XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
+		};
 
 		// Creates the frame's window.
 		xcb_create_window_checked(m_connection,
@@ -71,13 +71,11 @@ FramedWindow::FramedWindow(xcb_connection_t *conn,
 
 FramedWindow::~FramedWindow()
 {
-	fprintf(stdout, "Destroying framed window (xwindow=0x%x)\n", m_window);
-
-	xcb_reparent_window_checked(m_connection, m_window, m_screen->root, m_pos.x, m_pos.y);
-
-	xcb_unmap_window_checked(m_connection, m_frame);
-	xcb_change_save_set_checked(m_connection, XCB_SET_MODE_DELETE, m_window);
-	xcb_destroy_window_checked(m_connection, m_frame);
+	xcb_change_save_set(m_connection, XCB_SET_MODE_DELETE, m_window);
+	xcb_reparent_window(m_connection, m_window, m_screen->root, m_pos.x, m_pos.y);
+	xcb_unmap_window(m_connection, m_frame);
+	xcb_destroy_window(m_connection, m_frame);
+	xcb_flush(m_connection);
 }
 
 void FramedWindow::move(Position new_pos)
