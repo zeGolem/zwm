@@ -9,7 +9,7 @@ Feel free to make a pull request if you want to fix some bug, make some changes,
 
 ### Dependencies
 
-For now I'm only using Xlib in the code, and Xephyr as an emulator to test. You will also need make and g++ to build it.
+For now I'm only using XCB and XCB Cursors in the code, and Xephyr as an emulator to test. You will also need make and g++ to build it.
 
 ### Get running
 
@@ -29,9 +29,11 @@ make run-xephyr
 
 **This is not produciton ready, there are still loads of crashes, and bugs that makes this unusable on a main system**
 
-If you want to install this despite all those warnings, you'll have to figure it out yourself, I do not recommend doing this, and emulator is enough for developement purposes
+If you want to install this despite all those warnings, you'll have to figure it out yourself, I do not recommend doing this, and emulator is enough for development purposes
 
 ### Keyboard shortcuts
+
+*currently not working due to recent refactoring*
 
 - **Alt+Mouse1** moves the window you're hovering over
 - **Alt+Mouse3** resizes the window you're hovering over
@@ -40,21 +42,13 @@ If you want to install this despite all those warnings, you'll have to figure it
 
 ## TODO
 
-### Bugs
-
-- You should be able to click anywhere on a window to raise it to the from
-  - Potential fix: Grab all buttons when the window is inactive, and ungrab them once it's active. That way
-    we get the input when we need it, and the running program gets it when it needs it. This would
-    also prevent inputs from going to the wrong window…  
-    **This fix was inspired by dwm**
-- Focus shouldn't move with the mouse, the last clicked window should be focused
-- Multiple physical displays are not supported
-
 ### Features to add
 
-- Buttons to close, maximuze/restore, and inconify a window
-- Some sort of configuration? I don't think I'd need that many things configurable, so maybe using environement variables could be a good way to go?
+- Buttons to close, maximize/restore, and iconify a window
+- Some sort of configuration? I don't think I'd need that many things configurable, so maybe using environment variables could be a good way to go?
+- Add back all the features in Xlib that no longer work since switching to XCB.
 
-### Code improvements
+### Currently working on
 
-- There are loads of things that are computed multiple times that could be only computed once, such as fonts…
+- Getting the frame drawing working
+- Making events work
