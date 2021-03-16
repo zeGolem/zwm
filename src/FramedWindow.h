@@ -6,7 +6,7 @@
 namespace ZWM
 {
 struct Position {
-	unsigned int x, y;
+	int x, y;
 	auto operator+=(const Position &rhs)
 	{
 		this->x += rhs.x;

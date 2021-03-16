@@ -19,7 +19,7 @@ FramedWindow::FramedWindow(xcb_connection_t *conn, xcb_screen_t *screen, xcb_win
 {
 	// Get window geometry
 	auto window_geometry = xcb_get_geometry_reply(m_connection, xcb_get_geometry(m_connection, m_window), 0);
-	m_pos = {static_cast<unsigned int>(window_geometry->x), static_cast<unsigned int>(window_geometry->y)};
+	m_pos = {window_geometry->x, window_geometry->y};
 	m_size = {window_geometry->width, window_geometry->height};
 
 	// Make background pixmap
@@ -80,7 +80,8 @@ FramedWindow::~FramedWindow()
 
 void FramedWindow::move(Position new_pos)
 {
-	const static uint32_t position[]{new_pos.x, new_pos.y};
+	// TODO: what? what to do if position is negative? xcb is weird...
+	const static uint32_t position[]{static_cast<uint32_t>(new_pos.x), static_cast<uint32_t>(new_pos.y)};
 	xcb_configure_window(m_connection, m_frame, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, position);
 	m_pos = new_pos;
 	redraw_title();
