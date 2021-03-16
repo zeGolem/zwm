@@ -328,7 +328,6 @@ void WindowManager::run_loop()
 	if (e->value_mask & event_mask) {                                                                                  \
 		final_mask |= event_mask;                                                                                      \
 		final_values[i++] = e->event_value;                                                                            \
-		fprintf(stdout, "mask:%d,value:%d\n", event_mask, e->event_value);                                             \
 	}
 				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_X, x);
 				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_Y, y);
