@@ -90,8 +90,7 @@ int WindowManager::init()
 	// Get events
 	{
 		uint32_t values[2];
-		values[0] =
-		    XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+		values[0] = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
 		// To get maprequest events
 		auto cookie = xcb_change_window_attributes_checked(m_connection, m_screen->root, XCB_CW_EVENT_MASK, values);
@@ -306,34 +305,44 @@ void WindowManager::run_loop()
 
 		case XCB_CONFIGURE_REQUEST: {
 			auto e = (xcb_configure_request_event_t *)event;
-			fprintf(stdout, "Configure request event\n");
-			// TODO: Reimplement configure request.
 
-			/*
-			auto config_request = event.xconfigurerequest;
-			auto window = config_request.window;
-			XWindowChanges changes{};
-			changes.x = config_request.x;
-			changes.y = config_request.y;
-			changes.width = config_request.width;
-			changes.height = config_request.height;
-			changes.border_width = config_request.border_width;
+			auto window = e->window;
+			auto frame = find_frame_for_xwindow(window);
+			if (frame) {
+				auto framed_window = m_frames_to_framedwindows[frame];
+				framed_window->move({e->x, e->y});
+				framed_window->resize({e->width, e->height});
+			} else {
 
-			Window windows_frame = find_frame_for_xwindow(window);
-			if (windows_frame)
-			{
-			    auto framed_window = m_frames_to_framedwindows[windows_frame];
-			    ZWM::Position new_pos{changes.x, changes.y};
-			    ZWM::Size new_size{changes.width, changes.height};
+				// Pretty much stolen from i3wm
+				// We have to do this to reconstruct the values to pass to xcb_configure_window()
+				// as this isn't directly given to us by the XCB API.
+				//
+				// TODO: Cleanup ? There may be an easier way to do this in C++
 
-			    if (new_pos != framed_window->pos())
-			        framed_window->move(new_pos);
-			    if (new_size != framed_window->size())
-			        framed_window->resize(new_size);
+				uint32_t final_mask;
+				uint32_t final_values[7];
+				unsigned int i;
+
+#define COPY_VALUE_IF_MASK_SET(event_mask, event_value)                                                                \
+	if (e->value_mask & event_mask) {                                                                                  \
+		final_mask |= event_mask;                                                                                      \
+		final_values[i++] = e->event_value;                                                                            \
+		fprintf(stdout, "mask:%d,value:%d\n", event_mask, e->event_value);                                             \
+	}
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_X, x);
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_Y, y);
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_WIDTH, width);
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_HEIGHT, height);
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_BORDER_WIDTH, border_width);
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_SIBLING, sibling);
+				COPY_VALUE_IF_MASK_SET(XCB_CONFIG_WINDOW_STACK_MODE, stack_mode);
+#undef COPY_VALUE_IF_MASK_SET
+
+				// Now we call xcb_configure_window() with the correct values.
+				auto cookie = xcb_configure_window(m_connection, window, final_mask, final_values);
+				xcb_flush(m_connection);
 			}
-
-			XConfigureWindow(m_display, window, config_request.value_mask, &changes);
-			*/
 			break;
 		}
 
